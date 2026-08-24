@@ -1,0 +1,579 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Daily Shop Crystal</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#023e5e">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Shop Crystal">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/12.16.0/firebase-app-compat.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/12.16.0/firebase-firestore-compat.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+<style>
+:root{
+  --deep:#023e5e; --mid:#0a7fbf; --bright:#39c9f8; --foam:#eafcff;
+  --glass:rgba(255,255,255,.16); --glassStrong:rgba(255,255,255,.30); --line:rgba(255,255,255,.55);
+  --text:#04304e; --shine:rgba(255,255,255,.9);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Arial,sans-serif;color:var(--text);min-height:100vh;
+  background:
+    radial-gradient(circle at 15% 8%,rgba(255,255,255,.55),transparent 30%),
+    radial-gradient(circle at 85% 15%,rgba(255,255,255,.35),transparent 32%),
+    radial-gradient(circle at 30% 85%,rgba(255,255,255,.25),transparent 35%),
+    linear-gradient(150deg,#052c47,#0a7fbf 35%,#39c9f8 62%,#bdf3ff 85%,#eafcff);
+  background-attachment:fixed;overflow-x:hidden;
+}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    repeating-linear-gradient(115deg,rgba(255,255,255,.05) 0 2px,transparent 2px 40px),
+    repeating-linear-gradient(25deg,rgba(255,255,255,.04) 0 2px,transparent 2px 55px);
+  mix-blend-mode:overlay;
+}
+.app{max-width:1500px;margin:auto;padding:12px;position:relative;z-index:1}
+.glass{background:var(--glass);border:1px solid var(--line);
+  box-shadow:0 14px 40px rgba(0,60,110,.28),inset 0 1px 0 var(--shine),inset 0 -1px 12px rgba(255,255,255,.12);
+  border-radius:22px;backdrop-filter:blur(20px) saturate(160%);position:relative;overflow:hidden}
+header{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;position:sticky;top:8px;z-index:5}
+.title{font-size:25px;font-weight:800;letter-spacing:.3px;text-shadow:0 1px 0 rgba(255,255,255,.6)}
+.date{font-size:14px;opacity:.85}
+nav{display:flex;gap:8px;margin:14px 0;flex-wrap:wrap}
+button,.filebtn{border:1px solid rgba(255,255,255,.6);background:rgba(255,255,255,.35);color:var(--text);padding:10px 14px;border-radius:14px;font-weight:700;cursor:pointer;box-shadow:0 5px 15px rgba(0,80,140,.15);transition:.15s}
+button:hover,.filebtn:hover{background:rgba(255,255,255,.6);transform:translateY(-1px)}
+button.primary{background:linear-gradient(135deg,#ffffff,#8be9ff 60%,#39c9f8);color:#04456e}
+.view{display:none}.view.active{display:block}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.card{padding:10px}.label{font-size:12px;opacity:.75}.value{font-size:19px;font-weight:800;margin-top:2px;color:#04456e}
+.section{margin:10px 0;padding:10px;overflow:auto}
+.section h2{margin:0 0 8px;font-size:17px}
+table{border-collapse:separate;border-spacing:3px;width:auto}
+.prodTabs{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+.prodTabBtn{border:1px solid rgba(255,255,255,.6);background:rgba(255,255,255,.3);color:var(--text);padding:8px 14px;border-radius:12px;font-weight:700;cursor:pointer}
+.prodTabBtn.active{background:linear-gradient(135deg,#ffffff,#8be9ff 60%,#39c9f8);color:#04456e}
+.prodGrid{position:relative}
+.prodSection{display:none;margin:0}
+.prodSection.active{display:block}
+.prodTable{width:100%;table-layout:fixed}
+.grpHeader td{background:linear-gradient(135deg,rgba(255,255,255,.65),rgba(139,233,255,.35));font-weight:800;text-align:left;padding:6px 10px;border-radius:8px;color:#04456e;font-size:12px;letter-spacing:.3px}
+.grpHeader.divider td{border-top:3px solid rgba(4,48,78,.35);margin-top:6px}
+.modalOverlay{position:fixed;inset:0;background:rgba(2,30,50,.55);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px}
+.modalBox{max-width:380px;width:100%;padding:20px;border-radius:18px}
+.modalMsg{white-space:pre-wrap;font-size:14px;line-height:1.5;margin-bottom:14px}
+.modalBtns{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.modalBtns button{border:none;border-radius:10px;padding:9px 16px;font-weight:700;cursor:pointer}
+.modalBtns .mbPrimary{background:linear-gradient(135deg,#ffffff,#8be9ff 60%,#39c9f8);color:#04456e}
+.modalBtns .mbSecondary{background:rgba(255,255,255,.4);color:var(--text)}
+.syncBadge{display:inline-block;margin-top:3px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:8px}
+.syncBadge.online{background:rgba(120,255,180,.35);color:#04456e}
+.syncBadge.offline{background:rgba(255,220,120,.4);color:#5e3a00}
+th,td{padding:3px 5px;text-align:center}
+th{font-size:11px;background:rgba(255,255,255,.4);border-radius:7px}
+td{background:rgba(255,255,255,.24);border-radius:7px;font-size:12px}
+input,select{width:100%;max-width:64px;border:1px solid rgba(255,255,255,.6);background:rgba(255,255,255,.55);border-radius:6px;padding:4px;color:var(--text);outline:none;font-size:12px;margin:0 auto;display:block}
+input:focus,select:focus{box-shadow:0 0 0 2px rgba(255,255,255,.85)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.totals{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.small{font-size:12px}.danger{color:#9b1c1c}
+.mapgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.mapgrid label{font-size:12px;font-weight:700;display:block;margin-bottom:4px}
+.previewTbl{max-height:220px;overflow:auto;border-radius:12px}
+.bar{height:14px;border-radius:7px;background:linear-gradient(90deg,#0a7fbf,#39c9f8);box-shadow:inset 0 1px 2px rgba(255,255,255,.6)}
+.barRow{display:grid;grid-template-columns:90px 1fr 70px;gap:8px;align-items:center;margin:6px 0;font-size:12px}
+@media(max-width:900px){.cards,.totals{grid-template-columns:repeat(2,1fr)}.grid2,.mapgrid{grid-template-columns:1fr}header{position:relative}.app{padding:9px}.section{padding:10px}}
+.insightCard{border-radius:14px;padding:12px 14px;margin-bottom:8px;font-size:13px;line-height:1.45;border-left:5px solid}
+.insightCard.good{background:rgba(120,255,180,.22);border-color:#1a8a4a}
+.insightCard.warn{background:rgba(255,150,120,.22);border-color:#c0392b}
+.insightCard b{display:block;margin-bottom:2px;font-size:13.5px}
+.insightEmpty{font-size:13px;opacity:.75}
+</style>
+</head>
+<body>
+<div id="modalOverlay" class="modalOverlay" style="display:none">
+  <div class="modalBox glass">
+    <div id="modalMsg" class="modalMsg"></div>
+    <div class="modalBtns" id="modalBtns"></div>
+  </div>
+</div>
+<div class="app">
+<header class="glass"><div><div class="title">💧 Daily Shop Crystal</div><div class="date" id="todayLabel"></div><div id="syncBadge" class="syncBadge offline">📴 Local only</div></div><button type="button" class="primary" onclick="closeDay()">SAVE & CLOSE DAY</button></header>
+<nav>
+<button type="button" onclick="show('daily')">Daily Sale</button>
+<button type="button" onclick="show('history')">History</button>
+<button type="button" onclick="show('analytics')">Analytics</button>
+<button type="button" onclick="show('settings')">Products / Prices</button>
+<label class="filebtn">Import Excel <input id="excel" type="file" accept=".xlsx,.xls,.csv" hidden></label>
+</nav>
+
+<section id="daily" class="view active">
+<div class="cards">
+<div class="card glass"><div class="label">Today's Sales</div><div class="value" id="totalSales">0 AFN</div></div>
+<div class="card glass"><div class="label">Today's Profit</div><div class="value" id="totalProfit">0 AFN</div></div>
+<div class="card glass"><div class="label">Sales Entries</div><div class="value" id="entryCount">0</div></div>
+<div class="card glass"><div class="label">Current Date</div><div class="value" id="dateCard"></div></div>
+</div>
+
+<div class="prodTabs">
+<button type="button" class="prodTabBtn active" data-tab="soap" onclick="showProd('soap')">🧼 Soap</button>
+<button type="button" class="prodTabBtn" data-tab="wasleen" onclick="showProd('wasleen')">🫧 Wasleen</button>
+<button type="button" class="prodTabBtn" data-tab="shampoo" onclick="showProd('shampoo')">🧴 Shampoo</button>
+<button type="button" class="prodTabBtn" data-tab="surf" onclick="showProd('surf')">🧽 Surf</button>
+</div>
+<div class="prodGrid">
+<div class="section glass prodSection active" data-tab="soap"><h2>🧼 Soap — 40 sales</h2><table class="prodTable"><colgroup><col style="width:12%"><col style="width:29%"><col style="width:29%"><col style="width:30%"></colgroup><thead><tr><th>#</th><th>A Price</th><th>S Price</th><th>Profit</th></tr></thead><tbody id="soap"></tbody></table></div>
+<div class="section glass prodSection" data-tab="wasleen"><h2>🫧 Wasleen — 40 sales</h2><table class="prodTable"><colgroup><col style="width:10%"><col style="width:20%"><col style="width:22%"><col style="width:22%"><col style="width:26%"></colgroup><thead><tr><th>#</th><th>KG</th><th>S Price</th><th>Price / KG</th><th>Profit</th></tr></thead><tbody id="wasleen"></tbody></table></div>
+<div class="section glass prodSection" data-tab="shampoo"><h2>🧴 Shampoo — 40 sales (20 + 20)</h2><table class="prodTable"><colgroup><col style="width:10%"><col style="width:20%"><col style="width:18%"><col style="width:22%"><col style="width:30%"></colgroup><thead><tr><th>#</th><th>Type</th><th>Litre</th><th>S Price</th><th>Profit</th></tr></thead><tbody id="shampoo"></tbody></table></div>
+<div class="section glass prodSection" data-tab="surf"><h2>🧽 Surf — 40 sales</h2><table class="prodTable"><colgroup><col style="width:12%"><col style="width:29%"><col style="width:29%"><col style="width:30%"></colgroup><thead><tr><th>#</th><th>A Price</th><th>S Price</th><th>Profit</th></tr></thead><tbody id="surf"></tbody></table></div>
+</div>
+
+<div class="section glass"><h2>Daily Totals & Expenses</h2><div class="totals">
+<div class="card glass"><div class="label">Soap Sales</div><div class="value" id="soapSales">0</div><div class="small" id="soapProfit">Profit 0</div></div>
+<div class="card glass"><div class="label">Wasleen Sales</div><div class="value" id="wasleenSales">0</div><div class="small" id="wasleenProfit">Profit 0</div></div>
+<div class="card glass"><div class="label">Shampoo Sales</div><div class="value" id="shampooSales">0</div><div class="small" id="shampooProfit">Profit 0</div></div>
+<div class="card glass"><div class="label">Surf Sales</div><div class="value" id="surfSales">0</div><div class="small" id="surfProfit">Profit 0</div></div>
+<div class="card glass"><div class="label">Expenses</div><input id="expenses" type="number" step="0.01" placeholder="0"></div>
+</div></div>
+</section>
+
+<section id="history" class="view"><div class="section glass"><h2>📚 Saved Days (unlimited)</h2><div id="historyList"></div></div><div id="detail"></div></section>
+
+<section id="analytics" class="view">
+<div class="section glass"><h2>🔎 Smart Insights</h2><div id="analyticsInsights"></div></div>
+<div class="section glass"><h2>📊 All-Time Analytics</h2><div class="cards" id="analyticsCards"></div></div>
+<div class="section glass"><h2>Per-Product Totals (all history)</h2><div id="analyticsProducts"></div></div>
+<div class="section glass"><h2>Last 30 Saved Days — Sales Trend</h2><div id="analyticsTrend"></div></div>
+</section>
+
+<section id="settings" class="view"><div class="section glass"><h2>⚙ Product / Price Settings</h2>
+<p>These are defaults for the current day's calculations. Each row stores its own A Price, so changing settings later will not change old days.</p>
+<div class="grid2"><div>Soap default A Price<input id="setSoap" type="number" step=".01"></div><div>Surf default A Price<input id="setSurf" type="number" step=".01"></div><div>Wasleen A Price / KG<input id="setWasleen" type="number" step=".01"></div><div>Shampoo first 20 A Price / L<input id="setSh10" type="number" step=".01" value="5"></div><div>Shampoo second 20 A Price / L<input id="setSh6" type="number" step=".01" value="8"></div></div><br><button type="button" class="primary" onclick="saveSettings()">Save Settings</button>
+<hr><p><b>Excel import:</b> click "Import Excel" above, pick your sheet, then match your columns (Date, Sales, Profit, per-product if you have them). You choose the mapping, so it works with your existing workbook exactly as it is. Imported days are added to History and included in Analytics.</p>
+<div id="importArea"></div>
+</div></section>
+</div>
+<script>
+function appAlert(msg){
+  return new Promise(resolve=>{
+    const ov=document.getElementById('modalOverlay'),btns=document.getElementById('modalBtns');
+    document.getElementById('modalMsg').textContent=msg;
+    btns.innerHTML='';
+    const ok=document.createElement('button');ok.textContent='OK';ok.className='mbPrimary';
+    ok.onclick=()=>{ov.style.display='none';resolve(true)};
+    btns.appendChild(ok);
+    ov.style.display='flex';
+    ok.focus();
+  });
+}
+function appConfirm(msg){
+  return new Promise(resolve=>{
+    const ov=document.getElementById('modalOverlay'),btns=document.getElementById('modalBtns');
+    document.getElementById('modalMsg').textContent=msg;
+    btns.innerHTML='';
+    const cancel=document.createElement('button');cancel.textContent='Cancel';cancel.className='mbSecondary';
+    cancel.onclick=()=>{ov.style.display='none';resolve(false)};
+    const ok=document.createElement('button');ok.textContent='OK';ok.className='mbPrimary';
+    ok.onclick=()=>{ov.style.display='none';resolve(true)};
+    btns.appendChild(cancel);btns.appendChild(ok);
+    ov.style.display='flex';
+    ok.focus();
+  });
+}
+const KEY='daily_shop_v3', SET='daily_shop_settings_v3';
+const PRODUCT_KEYS=['soap','wasleen','shampoo10','shampoo6','surf'];
+const today=()=>new Date().toISOString().slice(0,10);
+async function storageGet(key){
+  if(typeof window.storage!=='undefined' && window.storage){
+    try{ const r=await window.storage.get(key,false); return r?r.value:null }catch(e){ return null }
+  }
+  try{ return localStorage.getItem(key) }catch(e){ return null }
+}
+function storageSet(key,value){
+  if(typeof window.storage!=='undefined' && window.storage){
+    window.storage.set(key,value,false).catch(()=>{});
+    return;
+  }
+  try{ localStorage.setItem(key,value) }catch(e){}
+}
+const firebaseConfig={apiKey:"AIzaSyBDNC1IxI90kCIJ1MXYQxsGJtjFOTLVY2o",authDomain:"shop-calculation-app.firebaseapp.com",projectId:"shop-calculation-app",storageBucket:"shop-calculation-app.firebasestorage.app",messagingSenderId:"898165250770",appId:"1:898165250770:web:598dc9b7457bd8db432b0b"};
+let db=null,fbReady=false,applyingRemote=false,pendingRerender=false;
+document.addEventListener('focusout',e=>{
+  if(pendingRerender && (e.target.tagName==='INPUT'||e.target.tagName==='SELECT')){
+    pendingRerender=false;
+    setTimeout(()=>{ if(!document.activeElement||(document.activeElement.tagName!=='INPUT'&&document.activeElement.tagName!=='SELECT')) render(); },0);
+  }
+});
+function setSyncBadge(text,cls){const el=document.getElementById('syncBadge');if(el){el.textContent=text;el.className='syncBadge '+cls}}
+function waitForFirebase(){
+  return new Promise(resolve=>{
+    if(window.firebase) return resolve(true);
+    let tries=0;
+    const iv=setInterval(()=>{
+      if(window.firebase){clearInterval(iv);resolve(true)}
+      else if(++tries>50){clearInterval(iv);resolve(false)}
+    },100);
+  });
+}
+async function initFirebaseSync(){
+  const ok=await waitForFirebase();
+  if(!ok){setSyncBadge('📴 Local only','offline');return}
+  try{
+    firebase.initializeApp(firebaseConfig);
+    db=firebase.firestore();
+    try{ await db.enablePersistence({synchronizeTabs:true}); }catch(e){}
+    fbReady=true;
+    setSyncBadge(navigator.onLine?'☁️ Synced':'📴 Offline (will sync)','offline');
+    const isTyping=()=>{let a=document.activeElement;return a&&(a.tagName==='INPUT'||a.tagName==='SELECT')};
+    db.collection('shopData').doc('settings').onSnapshot(snap=>{
+      if(snap.exists){
+        let incoming=snap.data();
+        if(JSON.stringify(incoming)!==JSON.stringify(settings)){
+          applyingRemote=true;settings=incoming;
+          if(isTyping()) pendingRerender=true; else render();
+          applyingRemote=false;
+        }
+      }
+      setSyncBadge(snap.metadata.fromCache?'📴 Offline (will sync)':'☁️ Synced',snap.metadata.fromCache?'offline':'online');
+    },()=>{setSyncBadge('⚠️ Sync error','offline')});
+    db.collection('shopData').doc('state').onSnapshot(snap=>{
+      if(snap.exists){
+        let incoming=snap.data();
+        if(JSON.stringify(incoming)!==JSON.stringify(state)){
+          applyingRemote=true;state=incoming;
+          if(isTyping()) pendingRerender=true; else render();
+          applyingRemote=false;
+        }
+      }
+      setSyncBadge(snap.metadata.fromCache?'📴 Offline (will sync)':'☁️ Synced',snap.metadata.fromCache?'offline':'online');
+    },()=>{setSyncBadge('⚠️ Sync error','offline')});
+    window.addEventListener('online',()=>setSyncBadge('☁️ Synced','online'));
+    window.addEventListener('offline',()=>setSyncBadge('📴 Offline (will sync)','offline'));
+  }catch(e){setSyncBadge('📴 Local only','offline')}
+}
+function cloudSave(doc,data){ if(fbReady && db && !applyingRemote){ db.collection('shopData').doc(doc).set(data).catch(()=>{}); } }
+let settings={soap:0,surf:0,wasleen:57,sh10:5,sh6:8};
+let state=blankState();
+function blankState(){return {openDate:today(),rows:emptyRows(),expenses:0,history:[]}}
+function emptyRows(){return {soap:Array(40).fill(null),wasleen:Array(40).fill(null),shampoo:Array(40).fill(null),surf:Array(40).fill(null)}}
+function hasData(){return Object.values(state.rows).some(a=>a.some(x=>x))||Number(state.expenses)>0}
+function advanceDay(d){state.openDate=d;state.rows=emptyRows();state.expenses=0;save()}
+function save(){storageSet(KEY,JSON.stringify(state));cloudSave('state',state)}
+async function init(){
+  try{
+    const [sRaw,stRaw]=await Promise.all([storageGet(SET),storageGet(KEY)]);
+    if(sRaw) settings=JSON.parse(sRaw);
+    if(stRaw) state=JSON.parse(stRaw);
+  }catch(e){}
+  if(state.openDate!==today()){ if(hasData()) appAlert('A previous day ('+state.openDate+') is still open with unsaved sales. Continue it or press SAVE & CLOSE DAY before starting a new day.'); else advanceDay(today()); }
+  render();
+  initFirebaseSync();
+}
+function money(n){return (Number(n)||0).toFixed(2)}
+function val(v){return v===''||v==null?'':Number(v)}
+function rowInput(type,i,field,value,step='0.01'){return `<input type="number" step="${step}" value="${value??''}" oninput="setRow('${type}',${i},'${field}',this.value)">`}
+function render(){
+document.getElementById('todayLabel').textContent='Working day: '+state.openDate; document.getElementById('dateCard').textContent=state.openDate;
+buildSoap();buildWasleen();buildShampoo();buildSurf();calc();
+const exp=document.getElementById('expenses');
+exp.value=state.expenses||'';
+exp.oninput=e=>{state.expenses=(e.target.value===''?0:Number(e.target.value));save();calc();};
+renderHistory();loadSettings();
+}
+function buildSoap(){let h='';for(let i=0;i<40;i++){let r=state.rows.soap[i]||{};let ap=r.ap??settings.soap;h+=`<tr><td>${i+1}</td><td>${rowInput('soap',i,'ap',ap)}</td><td>${rowInput('soap',i,'sp',r.sp)}</td><td id="soap_profit_${i}">${money((r.sp||0)-(r.ap||ap||0))}</td></tr>`}document.getElementById('soap').innerHTML=h}
+function buildWasleen(){let h='';for(let i=0;i<40;i++){let r=state.rows.wasleen[i]||{};let kg=r.kg||'',sp=r.sp||'',ap=r.ap??settings.wasleen;let pkg=kg?sp/kg:0,profit=(sp||0)-((kg||0)*(r.ap||ap||0));h+=`<tr><td>${i+1}</td><td>${rowInput('wasleen',i,'kg',kg,'0.01')}</td><td>${rowInput('wasleen',i,'sp',sp)}</td><td id="wasleen_pkg_${i}">${money(pkg)}</td><td id="wasleen_profit_${i}">${money(profit)}</td></tr>`}document.getElementById('wasleen').innerHTML=h}
+function buildShampoo(){let h='';
+for(let i=0;i<40;i++){
+  if(i===0) h+=`<tr class="grpHeader"><td colspan="5">🧴 10 KG Shampoo</td></tr>`;
+  if(i===20) h+=`<tr class="grpHeader divider"><td colspan="5">🧴 6 KG Shampoo</td></tr>`;
+  let r=state.rows.shampoo[i]||{};let ap=r.ap??(i<20?settings.sh10:settings.sh6),lit=r.lit||'',sp=r.sp||'',profit=(sp||0)-((lit||0)*(r.ap||ap||0));h+=`<tr><td>${i+1}</td><td>Shampoo</td><td>${rowInput('shampoo',i,'lit',lit,'0.01')}</td><td>${rowInput('shampoo',i,'sp',sp)}</td><td id="shampoo_profit_${i}">${money(profit)}</td></tr>`}
+document.getElementById('shampoo').innerHTML=h}
+function buildSurf(){let h='';for(let i=0;i<40;i++){let r=state.rows.surf[i]||{};let ap=r.ap??settings.surf;h+=`<tr><td>${i+1}</td><td>${rowInput('surf',i,'ap',ap)}</td><td>${rowInput('surf',i,'sp',r.sp)}</td><td id="surf_profit_${i}">${money((r.sp||0)-(r.ap||ap||0))}</td></tr>`}document.getElementById('surf').innerHTML=h}
+function setRow(type,i,field,v){
+  if(!state.rows[type][i]) state.rows[type][i]={};
+  state.rows[type][i][field]=(v==='' ? null : Number(v));
+  save();updateRowCalc(type,i);calc();
+}
+function updateRowCalc(type,i){
+  let r=state.rows[type][i]||{};
+  if(type==='soap'||type==='surf'){
+    let ap=r.ap??settings[type];
+    let el=document.getElementById(type+'_profit_'+i);
+    if(el) el.textContent=money((r.sp||0)-(r.ap||ap||0));
+  } else if(type==='wasleen'){
+    let kg=r.kg||0,sp=r.sp||0,ap=r.ap??settings.wasleen;
+    let pkg=kg?sp/kg:0,profit=(r.sp||0)-((kg||0)*(r.ap||ap||0));
+    let elP=document.getElementById('wasleen_pkg_'+i); if(elP) elP.textContent=money(pkg);
+    let elPr=document.getElementById('wasleen_profit_'+i); if(elPr) elPr.textContent=money(profit);
+  } else if(type==='shampoo'){
+    let ap=r.ap??(i<20?settings.sh10:settings.sh6),lit=r.lit||0;
+    let profit=(r.sp||0)-((lit||0)*(r.ap||ap||0));
+    let el=document.getElementById('shampoo_profit_'+i);
+    if(el) el.textContent=money(profit);
+  }
+}
+function calc(){
+let sums={soap:[0,0],wasleen:[0,0],shampoo:[0,0],surf:[0,0]},count=0;
+const cellProfit=(type,i)=>{let el=document.getElementById(type+'_profit_'+i);return el?(parseFloat(el.textContent)||0):0};
+state.rows.soap.forEach((r,i)=>{if(r?.sp!=null){sums.soap[0]+=r.sp;sums.soap[1]+=cellProfit('soap',i);count++}});
+state.rows.wasleen.forEach((r,i)=>{if(r?.sp!=null){sums.wasleen[0]+=r.sp;sums.wasleen[1]+=cellProfit('wasleen',i);count++}});
+state.rows.shampoo.forEach((r,i)=>{if(r?.sp!=null){sums.shampoo[0]+=r.sp;sums.shampoo[1]+=cellProfit('shampoo',i);count++}});
+state.rows.surf.forEach((r,i)=>{if(r?.sp!=null){sums.surf[0]+=r.sp;sums.surf[1]+=cellProfit('surf',i);count++}});
+let sales=Object.values(sums).reduce((a,x)=>a+x[0],0),profit=Object.values(sums).reduce((a,x)=>a+x[1],0);
+document.getElementById('totalSales').textContent=money(sales)+' AFN';document.getElementById('totalProfit').textContent=money(profit-Number(state.expenses||0))+' AFN';document.getElementById('entryCount').textContent=count;
+[['soap',sums.soap],['wasleen',sums.wasleen],['shampoo',sums.shampoo],['surf',sums.surf]].forEach(([k,x])=>{document.getElementById(k+'Sales').textContent=money(x[0]);document.getElementById(k+'Profit').textContent='Profit '+money(x[1])});
+}
+async function closeDay(){
+if(!hasData()){await appAlert('There are no sales to close.');return}
+calc();let sums=aggregate();let ok=await appConfirm(`${state.openDate}\nTotal Sales: ${money(sums.totalSales)} AFN\nTotal Profit after expenses: ${money(sums.netProfit)} AFN\nSales entries: ${sums.count}\n\nSAVE & CLOSE DAY?`);if(!ok)return;
+addHistoryEntry({date:state.openDate,summary:sums,rows:state.rows,expenses:Number(state.expenses||0),closedAt:new Date().toISOString()});
+advanceDay(today());
+render();await appAlert('Day saved successfully. A fresh daily sheet is ready. Your saved days are never deleted automatically — History keeps every day, with no limit.');
+}
+function addHistoryEntry(entry){
+  let i=state.history.findIndex(d=>d.date===entry.date);
+  if(i>=0) state.history[i]=entry; else state.history.push(entry);
+  state.history.sort((a,b)=>a.date<b.date?-1:1);
+  save();
+}
+function aggregate(){let s={soap:[0,0,0],wasleen:[0,0,0],shampoo10:[0,0,0],shampoo6:[0,0,0],surf:[0,0,0]},count=0;
+const cellProfit=(type,i)=>{let el=document.getElementById(type+'_profit_'+i);return el?(parseFloat(el.textContent)||0):0};
+state.rows.soap.forEach((r,i)=>{if(r?.sp!=null){s.soap[0]+=1;s.soap[1]+=r.sp;s.soap[2]+=cellProfit('soap',i);count++}});
+state.rows.wasleen.forEach((r,i)=>{if(r?.sp!=null){s.wasleen[0]+=r.kg||0;s.wasleen[1]+=r.sp;s.wasleen[2]+=cellProfit('wasleen',i);count++}});
+state.rows.shampoo.forEach((r,i)=>{if(r?.sp!=null){let k=i<20?'shampoo10':'shampoo6';s[k][0]+=r.lit||0;s[k][1]+=r.sp;s[k][2]+=cellProfit('shampoo',i);count++}});
+state.rows.surf.forEach((r,i)=>{if(r?.sp!=null){s.surf[0]+=1;s.surf[1]+=r.sp;s.surf[2]+=cellProfit('surf',i);count++}});
+let totalSales=Object.values(s).reduce((a,x)=>a+x[1],0),gross=Object.values(s).reduce((a,x)=>a+x[2],0),netProfit=gross-Number(state.expenses||0);return {products:s,totalSales,grossProfit:gross,expenses:Number(state.expenses||0),netProfit,count}}
+function renderHistory(){let h='';[...state.history].reverse().forEach((d)=>{let idx=state.history.findIndex(x=>x.date===d.date);h+=`<div class="section glass"><b>${d.date}</b>${d.imported?' <span class="small">(imported)</span>':''}<br>Sales: ${money(d.summary.totalSales)} AFN &nbsp; Profit: ${money(d.summary.netProfit)} AFN &nbsp; Entries: ${d.summary.count} <button type="button" onclick="detail(${idx})">View details</button></div>`});document.getElementById('historyList').innerHTML=h||'<p>No saved days yet.</p>'}
+function detail(i){let d=state.history[i],s=d.summary.products||{};
+let rows=[
+  ['Soap',s.soap],['Wasleen',s.wasleen],['Shampoo 10',s.shampoo10],['Shampoo 6',s.shampoo6],['Surf',s.surf],['Imported / Other',s.other]
+].filter(([_,v])=>v);
+let body=rows.map(([label,v])=>`<tr><td>${label}</td><td>${money(v[0])}</td><td>${money(v[1])}</td><td>${money(v[2])}</td></tr>`).join('');
+document.getElementById('detail').innerHTML=`<div class="section glass"><h2>${d.date} — Combined Daily Record</h2><table><tr><th>Product</th><th>Quantity</th><th>Total Sales</th><th>Total Profit</th></tr>
+${body}
+<tr><th>Daily Total</th><th></th><th>${money(d.summary.totalSales)}</th><th>${money(d.summary.netProfit)}</th></tr></table><p>Expenses: ${money(d.expenses)} AFN</p></div>`;
+show('history');window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
+}
+function saveSettings(){settings={soap:val(document.getElementById('setSoap').value),surf:val(document.getElementById('setSurf').value),wasleen:val(document.getElementById('setWasleen').value),sh10:val(document.getElementById('setSh10').value)||5,sh6:val(document.getElementById('setSh6').value)||8};storageSet(SET,JSON.stringify(settings));cloudSave('settings',settings);appAlert('Settings saved. Existing entered rows keep their own A Price.');render()}
+function loadSettings(){document.getElementById('setSoap').value=settings.soap??'';document.getElementById('setSurf').value=settings.surf??'';document.getElementById('setWasleen').value=settings.wasleen??57;document.getElementById('setSh10').value=settings.sh10??5;document.getElementById('setSh6').value=settings.sh6??8}
+function show(id){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');if(id==='history')renderHistory();if(id==='analytics')renderAnalytics()}
+function showProd(tab){
+  document.querySelectorAll('.prodSection').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));
+  document.querySelectorAll('.prodTabBtn').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));
+}
+
+/* ---------- Analytics ---------- */
+function renderAnalytics(){
+  let h=state.history;
+  renderInsights(h);
+  if(!h.length){document.getElementById('analyticsCards').innerHTML='<p>No saved days yet — analytics will appear once you close your first day or import Excel data.</p>';document.getElementById('analyticsProducts').innerHTML='';document.getElementById('analyticsTrend').innerHTML='';return}
+  let totalSales=0,totalProfit=0,best=h[0];
+  let prodTotals={soap:[0,0,0],wasleen:[0,0,0],shampoo10:[0,0,0],shampoo6:[0,0,0],surf:[0,0,0],other:[0,0,0]};
+  h.forEach(d=>{totalSales+=d.summary.totalSales||0;totalProfit+=d.summary.netProfit||0;if((d.summary.totalSales||0)>(best.summary.totalSales||0))best=d;
+    let p=d.summary.products||{};Object.keys(prodTotals).forEach(k=>{if(p[k]){prodTotals[k][0]+=p[k][0]||0;prodTotals[k][1]+=p[k][1]||0;prodTotals[k][2]+=p[k][2]||0}})});
+  document.getElementById('analyticsCards').innerHTML=`
+  <div class="card glass"><div class="label">Days Recorded</div><div class="value">${h.length}</div></div>
+  <div class="card glass"><div class="label">All-Time Sales</div><div class="value">${money(totalSales)}</div></div>
+  <div class="card glass"><div class="label">All-Time Profit</div><div class="value">${money(totalProfit)}</div></div>
+  <div class="card glass"><div class="label">Avg Daily Sales</div><div class="value">${money(totalSales/h.length)}</div></div>`;
+  let labels={soap:'Soap',wasleen:'Wasleen',shampoo10:'Shampoo 10',shampoo6:'Shampoo 6',surf:'Surf',other:'Imported / Other'};
+  let rows=Object.keys(prodTotals).filter(k=>prodTotals[k][1]||prodTotals[k][2]).map(k=>`<tr><td>${labels[k]}</td><td>${money(prodTotals[k][0])}</td><td>${money(prodTotals[k][1])}</td><td>${money(prodTotals[k][2])}</td></tr>`).join('');
+  document.getElementById('analyticsProducts').innerHTML=`<table><tr><th>Product</th><th>Quantity</th><th>Sales</th><th>Profit</th></tr>${rows}</table>`;
+  let last30=h.slice(-30);let max=Math.max(...last30.map(d=>d.summary.totalSales||0),1);
+  document.getElementById('analyticsTrend').innerHTML=last30.map(d=>`<div class="barRow"><span>${d.date.slice(5)}</span><span class="bar" style="width:${Math.max(4,(d.summary.totalSales||0)/max*100)}%"></span><span>${money(d.summary.totalSales)}</span></div>`).join('')||'<p>No data.</p>';
+}
+function renderInsights(h){
+  const box=document.getElementById('analyticsInsights');
+  if(!h.length){box.innerHTML='<p class="insightEmpty">Close a day (or import history) and insights will appear here automatically — no setup needed.</p>';return}
+  const items=computeInsights(h);
+  if(!items.length){box.innerHTML='<p class="insightEmpty">Not enough saved days yet for a confident analysis — keep closing days and check back.</p>';return}
+  box.innerHTML=items.map(it=>`<div class="insightCard ${it.type}"><b>${it.type==='good'?'✅ ':'⚠️ '}${it.title}</b>${it.detail}</div>`).join('');
+}
+function computeInsights(h){
+  const items=[];
+  const labels={soap:'Soap',wasleen:'Wasleen',shampoo10:'Shampoo 10',shampoo6:'Shampoo 6',surf:'Surf',other:'Imported/Other'};
+  const sorted=[...h].sort((a,b)=>a.date<b.date?-1:1);
+
+  /* --- Sales & profit trend: last 7 saved days vs the 7 before that --- */
+  if(sorted.length>=6){
+    const recent=sorted.slice(-7),prior=sorted.slice(-14,-7);
+    if(prior.length>=3){
+      const avg=arr=>arr.reduce((a,d)=>a+(d.summary.totalSales||0),0)/arr.length;
+      const avgP=arr=>arr.reduce((a,d)=>a+(d.summary.netProfit||0),0)/arr.length;
+      const sChg=avg(prior)?((avg(recent)-avg(prior))/avg(prior)*100):0;
+      const pChg=avgP(prior)?((avgP(recent)-avgP(prior))/Math.abs(avgP(prior))*100):0;
+      if(sChg>=8) items.push({type:'good',title:`Sales trending up ${sChg.toFixed(0)}%`,detail:`Average daily sales over your last ${recent.length} saved days (${money(avg(recent))} AFN) are up from the previous stretch (${money(avg(prior))} AFN).`});
+      else if(sChg<=-8) items.push({type:'warn',title:`Sales trending down ${Math.abs(sChg).toFixed(0)}%`,detail:`Average daily sales dropped from ${money(avg(prior))} AFN to ${money(avg(recent))} AFN over your recent saved days — worth a look.`});
+      if(pChg>=8) items.push({type:'good',title:`Profit improving`,detail:`Average daily net profit is up ${pChg.toFixed(0)}% versus the prior stretch of saved days.`});
+      else if(pChg<=-8) items.push({type:'warn',title:`Profit slipping`,detail:`Average daily net profit is down ${Math.abs(pChg).toFixed(0)}% versus the prior stretch — check pricing and expenses.`});
+    }
+  }
+
+  /* --- Per-product totals across all saved history --- */
+  const tot={};
+  h.forEach(d=>{const p=d.summary.products||{};Object.keys(p).forEach(k=>{if(!tot[k])tot[k]=[0,0,0];tot[k][0]+=p[k][0]||0;tot[k][1]+=p[k][1]||0;tot[k][2]+=p[k][2]||0})});
+  const withSales=Object.keys(tot).filter(k=>tot[k][1]>0);
+  if(withSales.length){
+    const margin=k=>tot[k][1]?tot[k][2]/tot[k][1]*100:0;
+    const best=withSales.reduce((a,b)=>margin(b)>margin(a)?b:a);
+    const worst=withSales.reduce((a,b)=>margin(b)<margin(a)?b:a);
+    if(margin(best)>=15) items.push({type:'good',title:`${labels[best]||best} is your strongest margin`,detail:`Running about ${margin(best).toFixed(0)}% profit margin across all saved days (${money(tot[best][2])} AFN profit on ${money(tot[best][1])} AFN sales).`});
+    if(withSales.length>1 && margin(worst)<8) items.push({type:'warn',title:`${labels[worst]||worst} margin is thin`,detail:`Only about ${margin(worst).toFixed(0)}% profit margin (${money(tot[worst][2])} AFN profit on ${money(tot[worst][1])} AFN sales) — consider adjusting the sale price or sourcing cost.`});
+  }
+
+  /* --- Product volume shift: last 7 saved days vs prior 7, per product --- */
+  if(sorted.length>=6){
+    const recent=sorted.slice(-7),prior=sorted.slice(-14,-7);
+    if(prior.length>=3){
+      const sumProd=(arr,k)=>arr.reduce((a,d)=>a+((d.summary.products||{})[k]?.[1]||0),0);
+      let worstDrop=null;
+      withSales.forEach(k=>{
+        const pS=sumProd(prior,k),rS=sumProd(recent,k);
+        if(pS>=50){
+          const chg=(rS-pS)/pS*100;
+          if(chg<=-25 && (!worstDrop||chg<worstDrop.chg)) worstDrop={k,chg,pS,rS};
+        }
+      });
+      if(worstDrop) items.push({type:'warn',title:`${labels[worstDrop.k]||worstDrop.k} sales cooling off`,detail:`Sales fell about ${Math.abs(worstDrop.chg).toFixed(0)}% versus the prior stretch (${money(worstDrop.pS)} → ${money(worstDrop.rS)} AFN) — check stock levels or local demand.`});
+    }
+  }
+
+  /* --- Expense ratio across all history --- */
+  const allSales=h.reduce((a,d)=>a+(d.summary.totalSales||0),0);
+  const allExp=h.reduce((a,d)=>a+(d.expenses||0),0);
+  if(allSales>0){
+    const ratio=allExp/allSales*100;
+    if(ratio<=8) items.push({type:'good',title:'Expenses well under control',detail:`Recorded expenses are about ${ratio.toFixed(1)}% of total sales across all saved days.`});
+    else if(ratio>=15) items.push({type:'warn',title:'Expenses are cutting into profit',detail:`Recorded expenses are about ${ratio.toFixed(1)}% of total sales — review where that spending is going.`});
+  }
+
+  /* --- Loss-making days --- */
+  const lossDays=h.filter(d=>(d.summary.netProfit||0)<0);
+  if(lossDays.length) items.push({type:'warn',title:`${lossDays.length} day(s) closed at a net loss`,detail:`Open History and check: ${lossDays.slice(0,5).map(d=>d.date).join(', ')}${lossDays.length>5?', …':''}.`});
+  else if(h.length>=5) items.push({type:'good',title:'No loss-making days on record',detail:`Every one of your ${h.length} saved days closed with a positive net profit.`});
+
+  /* --- Best weekday (only if enough spread of data) --- */
+  if(h.length>=10){
+    const byDow=[[],[],[],[],[],[],[]];
+    h.forEach(d=>{const dow=new Date(d.date+'T00:00:00').getDay();byDow[dow].push(d.summary.totalSales||0)});
+    const dowNames=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const avgs=byDow.map((arr,i)=>arr.length>=2?{i,avg:arr.reduce((a,b)=>a+b,0)/arr.length,n:arr.length}:null).filter(Boolean);
+    if(avgs.length>=3){
+      const best=avgs.reduce((a,b)=>b.avg>a.avg?b:a);
+      const worst=avgs.reduce((a,b)=>b.avg<a.avg?b:a);
+      if(best.i!==worst.i) items.push({type:'good',title:`${dowNames[best.i]} is your best day`,detail:`Averaging ${money(best.avg)} AFN in sales, versus ${money(worst.avg)} AFN on ${dowNames[worst.i]} — plan stock and staffing around this.`});
+    }
+  }
+
+  return items;
+}
+
+/* ---------- Excel Import with column mapping ---------- */
+let importWb=null,importSheetRows=null,importHeaders=[];
+function loadXLSX(){
+  if(window.XLSX) return Promise.resolve();
+  return new Promise((resolve,reject)=>{
+    let tries=0;
+    const iv=setInterval(()=>{
+      if(window.XLSX){clearInterval(iv);resolve()}
+      else if(++tries>100){clearInterval(iv);reject(new Error('The Excel library did not load. Check your connection and try again.'))}
+    },100);
+  });
+}
+document.getElementById('excel').onchange=async e=>{
+  let f=e.target.files[0];if(!f)return;
+  try{
+    await loadXLSX();
+    let data=await f.arrayBuffer();importWb=XLSX.read(data,{type:'array',cellDates:true});
+    show('settings');
+    renderSheetPicker();
+  }catch(err){appAlert('Could not read the Excel file: '+err.message)}
+  e.target.value='';
+};
+function renderSheetPicker(){
+  let opts=importWb.SheetNames.map(n=>`<option value="${n}">${n}</option>`).join('');
+  document.getElementById('importArea').innerHTML=`<div class="section glass"><h2>Import: choose sheet</h2>
+  <select id="sheetPick">${opts}</select>
+  <button type="button" class="primary" onclick="loadSheetPreview()">Load Sheet</button></div>`;
+}
+function loadSheetPreview(){
+  let name=document.getElementById('sheetPick').value;
+  let sheet=importWb.Sheets[name];
+  let json=XLSX.utils.sheet_to_json(sheet,{header:1,defval:null,raw:false});
+  importHeaders=(json[0]||[]).map((h,i)=>h==null||h===''?('Column '+(i+1)):String(h));
+  importSheetRows=json.slice(1).filter(r=>r.some(c=>c!=null && c!==''));
+  let colOpts='<option value="">(not in my sheet)</option>'+importHeaders.map((h,i)=>`<option value="${i}">${h}</option>`).join('');
+  document.getElementById('importArea').innerHTML+=`
+  <div class="section glass"><h2>Match your columns</h2>
+  <p class="small">Pick which column in your sheet holds each value. Leave any as "(not in my sheet)" if you don't track it separately — totals will just skip that field.</p>
+  <div class="mapgrid">
+  <div><label>Date</label><select id="mapDate">${colOpts}</select></div>
+  <div><label>Total Sales (for the day)</label><select id="mapSales">${colOpts}</select></div>
+  <div><label>Total Profit (for the day)</label><select id="mapProfit">${colOpts}</select></div>
+  <div><label>Expenses</label><select id="mapExpenses">${colOpts}</select></div>
+  <div><label>Soap Sales</label><select id="mapSoapS">${colOpts}</select></div>
+  <div><label>Soap Profit</label><select id="mapSoapP">${colOpts}</select></div>
+  <div><label>Wasleen Sales</label><select id="mapWasS">${colOpts}</select></div>
+  <div><label>Wasleen Profit</label><select id="mapWasP">${colOpts}</select></div>
+  <div><label>Shampoo Sales</label><select id="mapShS">${colOpts}</select></div>
+  <div><label>Shampoo Profit</label><select id="mapShP">${colOpts}</select></div>
+  <div><label>Surf Sales</label><select id="mapSurfS">${colOpts}</select></div>
+  <div><label>Surf Profit</label><select id="mapSurfP">${colOpts}</select></div>
+  </div>
+  <div class="previewTbl"><table><tr>${importHeaders.map(h=>`<th>${h}</th>`).join('')}</tr>
+  ${importSheetRows.slice(0,5).map(r=>`<tr>${importHeaders.map((_,i)=>`<td>${r[i]??''}</td>`).join('')}</tr>`).join('')}
+  </table></div>
+  <p class="small">${importSheetRows.length} data rows detected.</p>
+  <button type="button" class="primary" onclick="confirmImport()">Import These Rows into History</button>
+  </div>`;
+}
+function parseDateCell(v){
+  if(v==null||v==='')return null;
+  if(v instanceof Date)return v.toISOString().slice(0,10);
+  let n=Number(v);
+  if(!isNaN(n) && n>20000 && n<80000){ // excel serial date
+    let d=XLSX.SSF.parse_date_code(n);if(d)return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;
+  }
+  let d2=new Date(v);
+  if(!isNaN(d2.getTime()))return d2.toISOString().slice(0,10);
+  return String(v);
+}
+function num(v){if(v==null||v==='')return 0;let n=Number(String(v).replace(/,/g,''));return isNaN(n)?0:n}
+function confirmImport(){
+  let m={date:document.getElementById('mapDate').value,sales:document.getElementById('mapSales').value,profit:document.getElementById('mapProfit').value,expenses:document.getElementById('mapExpenses').value,
+  soapS:document.getElementById('mapSoapS').value,soapP:document.getElementById('mapSoapP').value,wasS:document.getElementById('mapWasS').value,wasP:document.getElementById('mapWasP').value,
+  shS:document.getElementById('mapShS').value,shP:document.getElementById('mapShP').value,surfS:document.getElementById('mapSurfS').value,surfP:document.getElementById('mapSurfP').value};
+  if(m.date===''){appAlert('Please choose which column holds the Date — every imported day needs a date.');return}
+  let imported=0,skipped=0;
+  importSheetRows.forEach(r=>{
+    let date=parseDateCell(r[m.date]);
+    if(!date){skipped++;return}
+    let hasProduct=m.soapS!=='' || m.wasS!=='' || m.shS!=='' || m.surfS!=='';
+    let products={};
+    let sales=0,profit=0;
+    if(hasProduct){
+      if(m.soapS!=='')products.soap=[0,num(r[m.soapS]),num(r[m.soapP])];
+      if(m.wasS!=='')products.wasleen=[0,num(r[m.wasS]),num(r[m.wasP])];
+      if(m.shS!=='')products.shampoo10=[0,num(r[m.shS]),num(r[m.shP])];
+      if(m.surfS!=='')products.surf=[0,num(r[m.surfS]),num(r[m.surfP])];
+      sales=Object.values(products).reduce((a,x)=>a+x[1],0);
+      profit=Object.values(products).reduce((a,x)=>a+x[2],0);
+    } else if(m.sales!=='' || m.profit!==''){
+      sales=num(r[m.sales]);profit=m.profit!==''?num(r[m.profit]):sales;
+      products.other=[0,sales,profit];
+    } else { skipped++; return }
+    let expenses=m.expenses!==''?num(r[m.expenses]):0;
+    let netProfit=profit-expenses;
+    addHistoryEntry({date,summary:{products,totalSales:sales,grossProfit:profit,expenses,netProfit,count:1},rows:null,expenses,imported:true,closedAt:new Date().toISOString()});
+    imported++;
+  });
+  appAlert(`Imported ${imported} day(s) into History.${skipped?` Skipped ${skipped} row(s) without a usable date/value.`:''}\nYou can review them under History or Analytics. Your current open working day was not affected — keep entering today's sales as normal.`);
+  document.getElementById('importArea').innerHTML='';
+  renderHistory();
+}
+
+if(document.readyState==='complete'){ init(); } else { window.addEventListener('load',init); }
+if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});}
+</script></body></html>
