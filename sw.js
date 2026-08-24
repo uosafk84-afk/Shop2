@@ -1,4 +1,4 @@
-const CACHE = 'shop-crystal-v2';
+const CACHE = 'shop-crystal-v4';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {

@@ -16,25 +16,24 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
 <style>
 :root{
-  --deep:#023e5e; --mid:#0a7fbf; --bright:#39c9f8; --foam:#eafcff;
-  --glass:rgba(255,255,255,.16); --glassStrong:rgba(255,255,255,.30); --line:rgba(255,255,255,.55);
-  --text:#04304e; --shine:rgba(255,255,255,.9);
+  --deep:#0b5cff; --mid:#4da3ff; --bright:#8bd7ff; --foam:#f5fbff;
+  --glass:rgba(255,255,255,.66); --glassStrong:rgba(255,255,255,.82); --line:rgba(255,255,255,.82);
+  --text:#102a43; --muted:#6b7c93; --shine:rgba(255,255,255,.98);
 }
 *{box-sizing:border-box}
-body{margin:0;font-family:Inter,Arial,sans-serif;color:var(--text);min-height:100vh;
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Inter,Arial,sans-serif;color:var(--text);min-height:100vh;
   background:
-    radial-gradient(circle at 15% 8%,rgba(255,255,255,.55),transparent 30%),
-    radial-gradient(circle at 85% 15%,rgba(255,255,255,.35),transparent 32%),
-    radial-gradient(circle at 30% 85%,rgba(255,255,255,.25),transparent 35%),
-    linear-gradient(150deg,#052c47,#0a7fbf 35%,#39c9f8 62%,#bdf3ff 85%,#eafcff);
+    radial-gradient(circle at 12% 0%,rgba(255,255,255,.98),transparent 30%),
+    radial-gradient(circle at 92% 8%,rgba(175,225,255,.38),transparent 30%),
+    radial-gradient(circle at 50% 100%,rgba(125,198,255,.22),transparent 42%),
+    linear-gradient(145deg,#f8fcff,#eef8ff 48%,#e8f5ff);
   background-attachment:fixed;overflow-x:hidden;
 }
 body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
-  background:
-    repeating-linear-gradient(115deg,rgba(255,255,255,.05) 0 2px,transparent 2px 40px),
-    repeating-linear-gradient(25deg,rgba(255,255,255,.04) 0 2px,transparent 2px 55px);
-  mix-blend-mode:overlay;
+  background:radial-gradient(circle at 25% 25%,rgba(255,255,255,.65),transparent 18%),
+             radial-gradient(circle at 75% 55%,rgba(255,255,255,.45),transparent 22%);
 }
+
 .app{max-width:1500px;margin:auto;padding:12px;position:relative;z-index:1}
 .glass{background:var(--glass);border:1px solid var(--line);
   box-shadow:0 14px 40px rgba(0,60,110,.28),inset 0 1px 0 var(--shine),inset 0 -1px 12px rgba(255,255,255,.12);
@@ -90,6 +89,40 @@ input:focus,select:focus{box-shadow:0 0 0 2px rgba(255,255,255,.85)}
 .insightCard.warn{background:rgba(255,150,120,.22);border-color:#c0392b}
 .insightCard b{display:block;margin-bottom:2px;font-size:13.5px}
 .insightEmpty{font-size:13px;opacity:.75}
+
+/* iOS-inspired white crystal analytics */
+.section.glass,.card.glass,.glass{
+  background:linear-gradient(145deg,rgba(255,255,255,.78),rgba(255,255,255,.52));
+  border:1px solid rgba(255,255,255,.92);
+  box-shadow:0 18px 45px rgba(52,105,150,.12),0 3px 10px rgba(52,105,150,.07),
+             inset 0 1px 0 rgba(255,255,255,.98),inset 0 -1px 0 rgba(185,220,245,.18);
+  backdrop-filter:blur(24px) saturate(145%);
+}
+button,.filebtn{background:rgba(255,255,255,.72);border:1px solid rgba(180,215,240,.55);color:#163b5c;box-shadow:0 5px 18px rgba(40,100,150,.10)}
+button:hover,.filebtn:hover{background:rgba(255,255,255,.94);transform:translateY(-1px)}
+button.primary{background:linear-gradient(135deg,#ffffff,#d9f2ff 45%,#8bd7ff);color:#07538a;box-shadow:0 8px 22px rgba(34,139,220,.18)}
+.view{animation:iosIn .28s ease both}
+@keyframes iosIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.analyticsGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.analyticsPanel{padding:18px}
+.analyticsPanel h3{margin:0 0 5px;font-size:18px}
+.panelSub{margin:0 0 14px;color:var(--muted);font-size:13px}
+.metricGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.metric{padding:15px;border-radius:20px;background:rgba(255,255,255,.58);border:1px solid rgba(255,255,255,.9);box-shadow:inset 0 1px rgba(255,255,255,.9)}
+.metric .label{color:var(--muted);font-size:12px}.metric .value{font-size:22px;font-weight:800;margin-top:5px}
+.kpiGood{color:#16865d}.kpiWarn{color:#c77800}
+.chartBox{min-height:260px}.svgChart{width:100%;height:250px;display:block}
+.chartEmpty{height:230px;display:grid;place-items:center;color:var(--muted)}
+.weekGrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:9px}
+.weekDay{padding:12px 8px;border-radius:18px;background:rgba(255,255,255,.62);border:1px solid rgba(255,255,255,.9);min-height:150px}
+.weekDay.best{box-shadow:0 0 0 2px rgba(43,143,255,.18),0 8px 22px rgba(43,143,255,.10)}
+.weekDayName{font-weight:800;font-size:13px}.weekAvg{font-size:15px;font-weight:800;margin:8px 0 2px}.weekSmall{font-size:11px;color:var(--muted)}
+.weekBar{height:7px;background:rgba(90,160,205,.12);border-radius:99px;overflow:hidden;margin:8px 0}
+.weekBar span{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#66bfff,#3e8cff)}
+.weekAdvice{margin-top:9px;font-size:11px;line-height:1.35}
+.insightCard{border-radius:18px!important;background:rgba(255,255,255,.62)!important;border:1px solid rgba(255,255,255,.9)!important;box-shadow:none!important}
+@media(max-width:900px){.analyticsGrid{grid-template-columns:1fr}.metricGrid{grid-template-columns:repeat(2,1fr)}.weekGrid{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:600px){.metricGrid{grid-template-columns:repeat(2,1fr)}.weekGrid{grid-template-columns:repeat(2,1fr)}.analyticsPanel{padding:14px}.svgChart{height:220px}}
 </style>
 </head>
 <body>
@@ -142,10 +175,22 @@ input:focus,select:focus{box-shadow:0 0 0 2px rgba(255,255,255,.85)}
 <section id="history" class="view"><div class="section glass"><h2>📚 Saved Days (unlimited)</h2><div id="historyList"></div></div><div id="detail"></div></section>
 
 <section id="analytics" class="view">
-<div class="section glass"><h2>🔎 Smart Insights</h2><div id="analyticsInsights"></div></div>
-<div class="section glass"><h2>📊 All-Time Analytics</h2><div class="cards" id="analyticsCards"></div></div>
-<div class="section glass"><h2>Per-Product Totals (all history)</h2><div id="analyticsProducts"></div></div>
-<div class="section glass"><h2>Last 30 Saved Days — Sales Trend</h2><div id="analyticsTrend"></div></div>
+<div class="section glass analyticsPanel">
+  <h2>📊 Shop Analysis & Improvement</h2>
+  <p class="panelSub">Your saved days are analyzed automatically. Charts use your real sales and profit history.</p>
+  <div class="metricGrid" id="analyticsCards"></div>
+</div>
+<div class="analyticsGrid">
+  <div class="section glass analyticsPanel"><h3>📈 Sales & Profit Trend</h3><p class="panelSub">Last 30 saved days</p><div id="analyticsTrend" class="chartBox"></div></div>
+  <div class="section glass analyticsPanel"><h3>🧼 Product Performance</h3><p class="panelSub">Sales and profit by product</p><div id="analyticsProductChart" class="chartBox"></div></div>
+</div>
+<div class="section glass analyticsPanel">
+  <h3>📅 What to Improve Each Day of the Week</h3>
+  <p class="panelSub">Average performance by weekday. Recommendations become more accurate as you save more days.</p>
+  <div id="weekdayAnalysis" class="weekGrid"></div>
+</div>
+<div class="section glass analyticsPanel"><h3>🔎 Smart Insights</h3><div id="analyticsInsights"></div></div>
+<div class="section glass analyticsPanel"><h3>📋 Per-Product Totals</h3><div id="analyticsProducts"></div></div>
 </section>
 
 <section id="settings" class="view"><div class="section glass"><h2>⚙ Product / Price Settings</h2>
@@ -365,24 +410,82 @@ function showProd(tab){
 }
 
 /* ---------- Analytics ---------- */
+function svgLineChart(days){
+  if(!days.length)return '<div class="chartEmpty">Save at least one day to see the chart.</div>';
+  const W=760,H=250,p={l:46,r:16,t:18,b:38}, iw=W-p.l-p.r, ih=H-p.t-p.b;
+  const max=Math.max(...days.flatMap(d=>[d.summary.totalSales||0,d.summary.netProfit||0]),1);
+  const x=i=>p.l+(days.length===1?iw/2:i*iw/(days.length-1));
+  const y=v=>p.t+ih-(Math.max(0,v)/max)*ih;
+  const sales=days.map((d,i)=>`${x(i)},${y(d.summary.totalSales||0)}`).join(' ');
+  const profit=days.map((d,i)=>`${x(i)},${y(d.summary.netProfit||0)}`).join(' ');
+  const grid=[0,.25,.5,.75,1].map(t=>{let yy=p.t+ih-t*ih;return `<line x1="${p.l}" y1="${yy}" x2="${W-p.r}" y2="${yy}" stroke="rgba(100,140,170,.16)"/><text x="${p.l-8}" y="${yy+4}" text-anchor="end" font-size="10" fill="#71869a">${money(max*t)}</text>`}).join('');
+  const labels=days.map((d,i)=>{if(days.length>10 && i%Math.ceil(days.length/6)!==0 && i!==days.length-1)return '';return `<text x="${x(i)}" y="${H-12}" text-anchor="middle" font-size="10" fill="#71869a">${d.date.slice(5)}</text>`}).join('');
+  const dots=days.map((d,i)=>`<circle cx="${x(i)}" cy="${y(d.summary.totalSales||0)}" r="3" fill="#3e8cff"/><circle cx="${x(i)}" cy="${y(d.summary.netProfit||0)}" r="3" fill="#16a66a"/>`).join('');
+  return `<svg class="svgChart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><defs><linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5db8ff" stop-opacity=".22"/><stop offset="1" stop-color="#5db8ff" stop-opacity="0"/></linearGradient></defs>${grid}<polygon points="${sales} ${x(days.length-1)},${p.t+ih} ${x(0)},${p.t+ih}" fill="url(#salesGrad)"/><polyline points="${sales}" fill="none" stroke="#3e8cff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><polyline points="${profit}" fill="none" stroke="#16a66a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>${dots}${labels}<text x="${p.l}" y="12" font-size="10" fill="#3e8cff">Sales</text><text x="${p.l+58}" y="12" font-size="10" fill="#16a66a">Net profit</text></svg>`;
+}
+function svgProductChart(prodTotals,labels){
+  const rows=Object.keys(prodTotals).filter(k=>prodTotals[k][1]||prodTotals[k][2]);
+  if(!rows.length)return '<div class="chartEmpty">No product data yet.</div>';
+  const W=760,H=Math.max(240,rows.length*42+48),p={l:125,r:28,t:18,b:22},iw=W-p.l-p.r;
+  const max=Math.max(...rows.map(k=>Math.max(prodTotals[k][1],prodTotals[k][2])),1);
+  let out=`<svg class="svgChart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">`;
+  rows.forEach((k,i)=>{let y=p.t+i*42;let s=prodTotals[k][1],pr=prodTotals[k][2];out+=`<text x="${p.l-10}" y="${y+14}" text-anchor="end" font-size="11" fill="#49677f">${labels[k]}</text><rect x="${p.l}" y="${y}" width="${s/max*iw}" height="11" rx="5" fill="#5db8ff" opacity=".78"/><rect x="${p.l}" y="${y+16}" width="${pr/max*iw}" height="11" rx="5" fill="#52c99a" opacity=".82"/><text x="${Math.min(W-5,p.l+s/max*iw+6)}" y="${y+9}" font-size="9" fill="#60778b">${money(s)}</text>`});
+  out+=`<text x="${p.l}" y="${H-6}" font-size="10" fill="#3e8cff">Sales</text><text x="${p.l+50}" y="${H-6}" font-size="10" fill="#16a66a">Profit</text></svg>`;
+  return out;
+}
+function renderWeekdayAnalysis(h){
+  const names=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const buckets=names.map(()=>[]);
+  h.forEach(d=>{const dt=new Date(d.date+'T00:00:00'); if(!isNaN(dt)) buckets[dt.getDay()].push(d)});
+  const valid=buckets.filter(a=>a.length);
+  const maxAvg=Math.max(...valid.map(a=>a.reduce((s,d)=>s+(d.summary.totalSales||0),0)/a.length),1);
+  if(!valid.length){document.getElementById('weekdayAnalysis').innerHTML='<div class="chartEmpty">Save days to unlock weekday analysis.</div>';return}
+  document.getElementById('weekdayAnalysis').innerHTML=buckets.map((arr,i)=>{
+    if(!arr.length)return `<div class="weekDay"><div class="weekDayName">${names[i]}</div><div class="weekSmall">No data yet</div></div>`;
+    const sales=arr.reduce((s,d)=>s+(d.summary.totalSales||0),0)/arr.length;
+    const profit=arr.reduce((s,d)=>s+(d.summary.netProfit||0),0)/arr.length;
+    const margin=sales?profit/sales*100:0;
+    const recent=arr.slice(-3).reduce((s,d)=>s+(d.summary.totalSales||0),0)/Math.min(3,arr.length);
+    let advice= sales===Math.max(...valid.map(a=>a.reduce((s,d)=>s+(d.summary.totalSales||0),0)/a.length)) ? 'Best sales day: keep strong stock and popular products ready.' :
+      margin<8 ? 'Improve: review prices, costs, and discounts to protect profit.' :
+      recent<sales*.85 ? 'Improve: sales are weakening recently; check demand and stock.' :
+      'Maintain: keep stock and pricing consistent.';
+    const best=sales===maxAvg;
+    return `<div class="weekDay ${best?'best':''}"><div class="weekDayName">${names[i]}${best?' ⭐':''}</div><div class="weekAvg">${money(sales)} AFN</div><div class="weekSmall">avg sales · ${arr.length} day${arr.length>1?'s':''}</div><div class="weekBar"><span style="width:${Math.max(4,sales/maxAvg*100)}%"></span></div><div class="weekSmall">Profit ${money(profit)} · ${margin.toFixed(1)}%</div><div class="weekAdvice">${advice}</div></div>`;
+  }).join('');
+}
 function renderAnalytics(){
-  let h=state.history;
+  let h=[...state.history].sort((a,b)=>a.date.localeCompare(b.date));
   renderInsights(h);
-  if(!h.length){document.getElementById('analyticsCards').innerHTML='<p>No saved days yet — analytics will appear once you close your first day or import Excel data.</p>';document.getElementById('analyticsProducts').innerHTML='';document.getElementById('analyticsTrend').innerHTML='';return}
-  let totalSales=0,totalProfit=0,best=h[0];
+  if(!h.length){
+    document.getElementById('analyticsCards').innerHTML='<div class="metric"><div class="label">Days Recorded</div><div class="value">0</div></div>';
+    ['analyticsProducts','analyticsTrend','analyticsProductChart','weekdayAnalysis'].forEach(id=>document.getElementById(id).innerHTML='<div class="chartEmpty">Close a day or import history to start analysis.</div>');
+    return;
+  }
+  let totalSales=0,totalProfit=0,totalExpenses=0,best=h[0];
   let prodTotals={soap:[0,0,0],wasleen:[0,0,0],shampoo10:[0,0,0],shampoo6:[0,0,0],surf:[0,0,0],other:[0,0,0]};
-  h.forEach(d=>{totalSales+=d.summary.totalSales||0;totalProfit+=d.summary.netProfit||0;if((d.summary.totalSales||0)>(best.summary.totalSales||0))best=d;
-    let p=d.summary.products||{};Object.keys(prodTotals).forEach(k=>{if(p[k]){prodTotals[k][0]+=p[k][0]||0;prodTotals[k][1]+=p[k][1]||0;prodTotals[k][2]+=p[k][2]||0}})});
+  h.forEach(d=>{
+    totalSales+=d.summary.totalSales||0; totalProfit+=d.summary.netProfit||0; totalExpenses+=d.summary.expenses||d.expenses||0;
+    if((d.summary.totalSales||0)>(best.summary.totalSales||0))best=d;
+    let p=d.summary.products||{}; Object.keys(prodTotals).forEach(k=>{if(p[k]){prodTotals[k][0]+=p[k][0]||0;prodTotals[k][1]+=p[k][1]||0;prodTotals[k][2]+=p[k][2]||0}});
+  });
+  const avg=totalSales/h.length, margin=totalSales?totalProfit/totalSales*100:0;
   document.getElementById('analyticsCards').innerHTML=`
-  <div class="card glass"><div class="label">Days Recorded</div><div class="value">${h.length}</div></div>
-  <div class="card glass"><div class="label">All-Time Sales</div><div class="value">${money(totalSales)}</div></div>
-  <div class="card glass"><div class="label">All-Time Profit</div><div class="value">${money(totalProfit)}</div></div>
-  <div class="card glass"><div class="label">Avg Daily Sales</div><div class="value">${money(totalSales/h.length)}</div></div>`;
-  let labels={soap:'Soap',wasleen:'Wasleen',shampoo10:'Shampoo 10',shampoo6:'Shampoo 6',surf:'Surf',other:'Imported / Other'};
-  let rows=Object.keys(prodTotals).filter(k=>prodTotals[k][1]||prodTotals[k][2]).map(k=>`<tr><td>${labels[k]}</td><td>${money(prodTotals[k][0])}</td><td>${money(prodTotals[k][1])}</td><td>${money(prodTotals[k][2])}</td></tr>`).join('');
-  document.getElementById('analyticsProducts').innerHTML=`<table><tr><th>Product</th><th>Quantity</th><th>Sales</th><th>Profit</th></tr>${rows}</table>`;
-  let last30=h.slice(-30);let max=Math.max(...last30.map(d=>d.summary.totalSales||0),1);
-  document.getElementById('analyticsTrend').innerHTML=last30.map(d=>`<div class="barRow"><span>${d.date.slice(5)}</span><span class="bar" style="width:${Math.max(4,(d.summary.totalSales||0)/max*100)}%"></span><span>${money(d.summary.totalSales)}</span></div>`).join('')||'<p>No data.</p>';
+    <div class="metric"><div class="label">Days Recorded</div><div class="value">${h.length}</div></div>
+    <div class="metric"><div class="label">All-Time Sales</div><div class="value">${money(totalSales)}</div></div>
+    <div class="metric"><div class="label">Net Profit</div><div class="value kpiGood">${money(totalProfit)}</div></div>
+    <div class="metric"><div class="label">Profit Margin</div><div class="value ${margin<8?'kpiWarn':'kpiGood'}">${margin.toFixed(1)}%</div></div>
+    <div class="metric"><div class="label">Average Daily Sales</div><div class="value">${money(avg)}</div></div>
+    <div class="metric"><div class="label">Total Expenses</div><div class="value">${money(totalExpenses)}</div></div>
+    <div class="metric"><div class="label">Best Sales Day</div><div class="value">${money(best.summary.totalSales||0)}</div></div>
+    <div class="metric"><div class="label">Best Day</div><div class="value">${best.date}</div></div>`;
+  const labels={soap:'Soap',wasleen:'Wasleen',shampoo10:'Shampoo 10',shampoo6:'Shampoo 6',surf:'Surf',other:'Imported / Other'};
+  const rows=Object.keys(prodTotals).filter(k=>prodTotals[k][1]||prodTotals[k][2]).map(k=>`<tr><td>${labels[k]}</td><td>${money(prodTotals[k][0])}</td><td>${money(prodTotals[k][1])}</td><td>${money(prodTotals[k][2])}</td><td>${prodTotals[k][1]?(prodTotals[k][2]/prodTotals[k][1]*100).toFixed(1)+'%':'—'}</td></tr>`).join('');
+  document.getElementById('analyticsProducts').innerHTML=`<table><tr><th>Product</th><th>Quantity</th><th>Sales</th><th>Profit</th><th>Margin</th></tr>${rows}</table>`;
+  const last30=h.slice(-30);
+  document.getElementById('analyticsTrend').innerHTML=svgLineChart(last30);
+  document.getElementById('analyticsProductChart').innerHTML=svgProductChart(prodTotals,labels);
+  renderWeekdayAnalysis(h);
 }
 function renderInsights(h){
   const box=document.getElementById('analyticsInsights');
