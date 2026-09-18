@@ -1,832 +1,132 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Daily Shop Crystal</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f5f7fb">
+<title>University Study System</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#023e5e">
-<link rel="icon" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Shop Crystal">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/12.16.0/firebase-app-compat.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/12.16.0/firebase-firestore-compat.js" defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
 <style>
-:root{
-  --deep:#0b5cff; --mid:#4da3ff; --bright:#8bd7ff; --foam:#f5fbff;
-  --glass:rgba(255,255,255,.66); --glassStrong:rgba(255,255,255,.82); --line:rgba(255,255,255,.82);
-  --text:#102a43; --muted:#6b7c93; --shine:rgba(255,255,255,.98);
-}
-*{box-sizing:border-box}
-body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",Inter,Arial,sans-serif;color:var(--text);min-height:100vh;
-  background:
-    radial-gradient(circle at 12% 0%,rgba(255,255,255,.98),transparent 30%),
-    radial-gradient(circle at 92% 8%,rgba(175,225,255,.38),transparent 30%),
-    radial-gradient(circle at 50% 100%,rgba(125,198,255,.22),transparent 42%),
-    linear-gradient(145deg,#f8fcff,#eef8ff 48%,#e8f5ff);
-  background-attachment:fixed;overflow-x:hidden;
-}
-body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
-  background:radial-gradient(circle at 25% 25%,rgba(255,255,255,.65),transparent 18%),
-             radial-gradient(circle at 75% 55%,rgba(255,255,255,.45),transparent 22%);
-}
-
-.app{max-width:1500px;margin:auto;padding:12px;position:relative;z-index:1}
-.glass{background:var(--glass);border:1px solid var(--line);
-  box-shadow:0 14px 40px rgba(0,60,110,.28),inset 0 1px 0 var(--shine),inset 0 -1px 12px rgba(255,255,255,.12);
-  border-radius:22px;backdrop-filter:blur(20px) saturate(160%);position:relative;overflow:hidden}
-header{padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;position:sticky;top:8px;z-index:5}
-.title{font-size:25px;font-weight:800;letter-spacing:.3px;text-shadow:0 1px 0 rgba(255,255,255,.6)}
-.date{font-size:14px;opacity:.85}
-nav{display:flex;gap:8px;margin:14px 0;flex-wrap:wrap}
-button,.filebtn{border:1px solid rgba(255,255,255,.6);background:rgba(255,255,255,.35);color:var(--text);padding:10px 14px;border-radius:14px;font-weight:700;cursor:pointer;box-shadow:0 5px 15px rgba(0,80,140,.15);transition:.15s}
-button:hover,.filebtn:hover{background:rgba(255,255,255,.6);transform:translateY(-1px)}
-button.primary{background:linear-gradient(135deg,#ffffff,#8be9ff 60%,#39c9f8);color:#04456e}
-.view{display:none}.view.active{display:block}
-.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
-.card{padding:10px}.label{font-size:12px;opacity:.75}.value{font-size:19px;font-weight:800;margin-top:2px;color:#04456e}
-.section{margin:10px 0;padding:10px;overflow:auto}
-.section h2{margin:0 0 8px;font-size:17px}
-table{border-collapse:separate;border-spacing:3px;width:auto}
-.prodTabs{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
-.prodTabBtn{border:1px solid rgba(255,255,255,.6);background:rgba(255,255,255,.3);color:var(--text);padding:8px 14px;border-radius:12px;font-weight:700;cursor:pointer}
-.prodTabBtn.active{background:linear-gradient(135deg,#ffffff,#8be9ff 60%,#39c9f8);color:#04456e}
-.prodGrid{position:relative}
-.prodSection{display:none;margin:0}
-.prodSection.active{display:block}
-.prodTable{width:100%;table-layout:fixed}
-.grpHeader td{background:linear-gradient(135deg,rgba(255,255,255,.65),rgba(139,233,255,.35));font-weight:800;text-align:left;padding:6px 10px;border-radius:8px;color:#04456e;font-size:12px;letter-spacing:.3px}
-.grpHeader.divider td{border-top:3px solid rgba(4,48,78,.35);margin-top:6px}
-.modalOverlay{position:fixed;inset:0;background:rgba(2,30,50,.55);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px}
-.modalBox{max-width:380px;width:100%;padding:20px;border-radius:18px}
-.modalMsg{white-space:pre-wrap;font-size:14px;line-height:1.5;margin-bottom:14px}
-.modalBtns{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
-.modalBtns button{border:none;border-radius:10px;padding:9px 16px;font-weight:700;cursor:pointer}
-.modalBtns .mbPrimary{background:linear-gradient(135deg,#ffffff,#8be9ff 60%,#39c9f8);color:#04456e}
-.modalBtns .mbSecondary{background:rgba(255,255,255,.4);color:var(--text)}
-.syncBadge{display:inline-block;margin-top:3px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:8px}
-.syncBadge.online{background:rgba(120,255,180,.35);color:#04456e}
-.syncBadge.offline{background:rgba(255,220,120,.4);color:#5e3a00}
-th,td{padding:3px 5px;text-align:center}
-th{font-size:11px;background:rgba(255,255,255,.4);border-radius:7px}
-td{background:rgba(255,255,255,.24);border-radius:7px;font-size:12px}
-input,select{width:100%;max-width:64px;border:1px solid rgba(255,255,255,.6);background:rgba(255,255,255,.55);border-radius:6px;padding:4px;color:var(--text);outline:none;font-size:12px;margin:0 auto;display:block}
-input:focus,select:focus{box-shadow:0 0 0 2px rgba(255,255,255,.85)}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.totals{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
-.small{font-size:12px}.danger{color:#9b1c1c}
-.mapgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
-.mapgrid label{font-size:12px;font-weight:700;display:block;margin-bottom:4px}
-.previewTbl{max-height:220px;overflow:auto;border-radius:12px}
-.bar{height:14px;border-radius:7px;background:linear-gradient(90deg,#0a7fbf,#39c9f8);box-shadow:inset 0 1px 2px rgba(255,255,255,.6)}
-.barRow{display:grid;grid-template-columns:90px 1fr 70px;gap:8px;align-items:center;margin:6px 0;font-size:12px}
-@media(max-width:900px){.cards,.totals{grid-template-columns:repeat(2,1fr)}.grid2,.mapgrid{grid-template-columns:1fr}header{position:relative}.app{padding:9px}.section{padding:10px}}
-.insightCard{border-radius:14px;padding:12px 14px;margin-bottom:8px;font-size:13px;line-height:1.45;border-left:5px solid}
-.insightCard.good{background:rgba(120,255,180,.22);border-color:#1a8a4a}
-.insightCard.warn{background:rgba(255,150,120,.22);border-color:#c0392b}
-.insightCard b{display:block;margin-bottom:2px;font-size:13.5px}
-.insightEmpty{font-size:13px;opacity:.75}
-
-/* iOS-inspired white crystal analytics */
-.section.glass,.card.glass,.glass{
-  background:linear-gradient(145deg,rgba(255,255,255,.78),rgba(255,255,255,.52));
-  border:1px solid rgba(255,255,255,.92);
-  box-shadow:0 18px 45px rgba(52,105,150,.12),0 3px 10px rgba(52,105,150,.07),
-             inset 0 1px 0 rgba(255,255,255,.98),inset 0 -1px 0 rgba(185,220,245,.18);
-  backdrop-filter:blur(24px) saturate(145%);
-}
-button,.filebtn{background:rgba(255,255,255,.72);border:1px solid rgba(180,215,240,.55);color:#163b5c;box-shadow:0 5px 18px rgba(40,100,150,.10)}
-button:hover,.filebtn:hover{background:rgba(255,255,255,.94);transform:translateY(-1px)}
-button.primary{background:linear-gradient(135deg,#ffffff,#d9f2ff 45%,#8bd7ff);color:#07538a;box-shadow:0 8px 22px rgba(34,139,220,.18)}
-.view{animation:iosIn .28s ease both}
-@keyframes iosIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
-.analyticsGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-.analyticsPanel{padding:18px}
-.analyticsPanel h3{margin:0 0 5px;font-size:18px}
-.panelSub{margin:0 0 14px;color:var(--muted);font-size:13px}
-.metricGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-.metric{padding:15px;border-radius:20px;background:rgba(255,255,255,.58);border:1px solid rgba(255,255,255,.9);box-shadow:inset 0 1px rgba(255,255,255,.9)}
-.metric .label{color:var(--muted);font-size:12px}.metric .value{font-size:22px;font-weight:800;margin-top:5px}
-.kpiGood{color:#16865d}.kpiWarn{color:#c77800}
-.chartBox{min-height:260px}.svgChart{width:100%;height:250px;display:block}
-.chartEmpty{height:230px;display:grid;place-items:center;color:var(--muted)}
-.weekGrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:9px}
-.weekDay{padding:12px 8px;border-radius:18px;background:rgba(255,255,255,.62);border:1px solid rgba(255,255,255,.9);min-height:150px}
-.weekDay.best{box-shadow:0 0 0 2px rgba(43,143,255,.18),0 8px 22px rgba(43,143,255,.10)}
-.weekDayName{font-weight:800;font-size:13px}.weekAvg{font-size:15px;font-weight:800;margin:8px 0 2px}.weekSmall{font-size:11px;color:var(--muted)}
-.weekBar{height:7px;background:rgba(90,160,205,.12);border-radius:99px;overflow:hidden;margin:8px 0}
-.weekBar span{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#66bfff,#3e8cff)}
-.weekAdvice{margin-top:9px;font-size:11px;line-height:1.35}
-.insightCard{border-radius:18px!important;background:rgba(255,255,255,.62)!important;border:1px solid rgba(255,255,255,.9)!important;box-shadow:none!important}
-@media(max-width:900px){.analyticsGrid{grid-template-columns:1fr}.metricGrid{grid-template-columns:repeat(2,1fr)}.weekGrid{grid-template-columns:repeat(4,1fr)}}
-@media(max-width:600px){.metricGrid{grid-template-columns:repeat(2,1fr)}.weekGrid{grid-template-columns:repeat(2,1fr)}.analyticsPanel{padding:14px}.svgChart{height:220px}}
-
-/* iOS 26 Liquid Glass — bright/clear light treatment */
-:root{
-  --lg-bg:#f7fbff;
-  --lg-ink:#102b43;
-  --lg-blue:#0a84ff;
-  --lg-cyan:#65d8ff;
-  --lg-edge:rgba(255,255,255,.72);
-}
-html{background:#f7fbff}
-body{
-  color:var(--lg-ink);
-  background:
-    radial-gradient(1200px 700px at 8% -10%,rgba(255,255,255,.98),transparent 62%),
-    radial-gradient(900px 600px at 100% 5%,rgba(106,214,255,.28),transparent 60%),
-    radial-gradient(900px 700px at 50% 105%,rgba(95,166,255,.18),transparent 62%),
-    linear-gradient(135deg,#fbfdff 0%,#eef8ff 48%,#e7f4ff 100%);
-  background-attachment:fixed;
-}
-body:after{content:"";position:fixed;inset:-20%;pointer-events:none;z-index:0;opacity:.7;
-  background:
-    radial-gradient(ellipse at 20% 30%,rgba(255,255,255,.72),transparent 18%),
-    radial-gradient(ellipse at 78% 20%,rgba(255,255,255,.42),transparent 16%),
-    radial-gradient(ellipse at 55% 75%,rgba(255,255,255,.32),transparent 20%);
-  filter:blur(28px);animation:liquidFloat 14s ease-in-out infinite alternate}
-@keyframes liquidFloat{from{transform:translate3d(-1%,0,0) scale(1)}to{transform:translate3d(1%,1%,0) scale(1.03)}}
-.app{z-index:1}
-.glass,.section.glass,.card.glass{
-  position:relative;
-  background:
-    linear-gradient(135deg,rgba(255,255,255,.70),rgba(255,255,255,.38) 48%,rgba(220,244,255,.34));
-  border:1px solid rgba(255,255,255,.82);
-  box-shadow:
-    0 22px 55px rgba(33,93,140,.14),
-    0 4px 14px rgba(33,93,140,.08),
-    inset 0 1px 0 rgba(255,255,255,.96),
-    inset 0 -1px 0 rgba(130,190,225,.16),
-    inset 1px 0 0 rgba(255,255,255,.35);
-  backdrop-filter:blur(30px) saturate(175%);
-  -webkit-backdrop-filter:blur(30px) saturate(175%);
-  overflow:hidden;
-}
-.glass:before,.section.glass:before,.card.glass:before{
-  content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;
-  background:linear-gradient(118deg,rgba(255,255,255,.34),transparent 25%,transparent 70%,rgba(255,255,255,.18));
-}
-.glass:after,.section.glass:after,.card.glass:after{
-  content:"";position:absolute;left:10%;right:10%;top:0;height:1px;pointer-events:none;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.95),transparent);
-}
-header.glass{background:linear-gradient(135deg,rgba(255,255,255,.78),rgba(232,248,255,.46));}
-.title{text-shadow:0 1px 1px rgba(255,255,255,.85);letter-spacing:.2px}
-button,.filebtn,.prodTabBtn{
-  position:relative;overflow:hidden;
-  background:linear-gradient(135deg,rgba(255,255,255,.76),rgba(255,255,255,.38));
-  border:1px solid rgba(255,255,255,.78);
-  box-shadow:0 8px 22px rgba(37,103,151,.10),inset 0 1px rgba(255,255,255,.9);
-  backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%);
-}
-button:before,.filebtn:before,.prodTabBtn:before{content:"";position:absolute;top:0;left:-80%;width:45%;height:100%;transform:skewX(-20deg);background:rgba(255,255,255,.45);transition:left .45s ease}
-button:hover:before,.filebtn:hover:before,.prodTabBtn:hover:before{left:125%}
-button.primary,.prodTabBtn.active{
-  background:linear-gradient(135deg,rgba(255,255,255,.94),rgba(204,241,255,.78) 48%,rgba(111,205,255,.62));
-  color:#075b91;border-color:rgba(255,255,255,.9);
-  box-shadow:0 10px 28px rgba(30,132,220,.18),inset 0 1px rgba(255,255,255,.98);
-}
-.section,.card{transition:transform .22s ease,box-shadow .22s ease}
-.card.glass:hover,.section.glass:hover{box-shadow:0 25px 60px rgba(33,93,140,.17),0 5px 16px rgba(33,93,140,.09),inset 0 1px rgba(255,255,255,.98)}
-th{background:linear-gradient(180deg,rgba(255,255,255,.66),rgba(255,255,255,.38));border:1px solid rgba(255,255,255,.45)}
-td{background:rgba(255,255,255,.30);border:1px solid rgba(255,255,255,.32);box-shadow:inset 0 1px rgba(255,255,255,.35)}
-input,select{background:rgba(255,255,255,.48);border:1px solid rgba(255,255,255,.78);box-shadow:inset 0 1px rgba(255,255,255,.8),0 2px 8px rgba(45,105,145,.05);backdrop-filter:blur(12px)}
-input:focus,select:focus{border-color:rgba(10,132,255,.42);box-shadow:0 0 0 3px rgba(10,132,255,.10),inset 0 1px rgba(255,255,255,.95)}
-.modalOverlay{background:rgba(35,75,105,.22);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
-.modalBox{background:linear-gradient(135deg,rgba(255,255,255,.82),rgba(230,247,255,.55))!important}
+:root{--bg:#f5f7fb;--card:rgba(255,255,255,.82);--text:#172033;--muted:#68738a;--line:#dfe5ef;--accent:#3b6ff5;--danger:#d84c4c;--ok:#2e9b68}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(145deg,#f8fbff,#edf2f8);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,sans-serif}
+button,input,select,textarea{font:inherit}button{cursor:pointer;border:0}.app{max-width:1050px;margin:auto;padding:18px}.top{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:16px}.title h1{margin:0;font-size:25px}.title p{margin:4px 0;color:var(--muted);font-size:13px}.btn{background:var(--accent);color:white;padding:11px 15px;border-radius:13px;font-weight:650}.btn.secondary{background:white;color:var(--text);border:1px solid var(--line)}.nav{display:flex;gap:7px;overflow:auto;margin-bottom:16px}.nav button{padding:10px 13px;border-radius:12px;background:white;border:1px solid var(--line);white-space:nowrap;color:var(--muted)}.nav button.active{background:#e9efff;color:var(--accent);border-color:#cbd8ff}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}.stat{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:15px}.stat b{font-size:23px}.stat span{display:block;color:var(--muted);font-size:12px;margin-top:3px}.panel{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:17px;margin-bottom:14px}.panel h2{font-size:17px;margin:0 0 12px}.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.list{display:grid;gap:8px}.item{background:white;border:1px solid var(--line);border-radius:15px;padding:12px;display:flex;justify-content:space-between;gap:10px;align-items:center}.item small{color:var(--muted)}.progress{height:8px;background:#e8ecf3;border-radius:99px;overflow:hidden;margin-top:8px}.progress i{display:block;height:100%;background:var(--accent);border-radius:99px}.badge{font-size:11px;padding:5px 8px;border-radius:999px;background:#eef1f6;color:var(--muted)}.ok{background:#e5f6ed;color:var(--ok)}.modal{position:fixed;inset:0;background:rgba(20,28,44,.35);display:none;align-items:center;justify-content:center;padding:15px;z-index:5}.modal.show{display:flex}.box{background:white;border-radius:22px;padding:19px;width:min(560px,100%);max-height:90vh;overflow:auto}.field{margin:10px 0}.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}.field input,.field select,.field textarea{width:100%;padding:11px;border:1px solid var(--line);border-radius:12px;background:#fafbfe}.field textarea{min-height:110px;resize:vertical}.empty{color:var(--muted);padding:18px;text-align:center}.file{display:flex;align-items:center;gap:10px}.file a{color:var(--accent);text-decoration:none}.hidden{display:none}@media(max-width:700px){.grid{grid-template-columns:repeat(2,1fr)}.app{padding:12px}.item{align-items:flex-start}.top{align-items:flex-start}} 
 </style>
 </head>
 <body>
-<div id="modalOverlay" class="modalOverlay" style="display:none">
-  <div class="modalBox glass">
-    <div id="modalMsg" class="modalMsg"></div>
-    <div class="modalBtns" id="modalBtns"></div>
-  </div>
-</div>
 <div class="app">
-<header class="glass"><div><div class="title">💧 Daily Shop Crystal</div><div class="date" id="todayLabel"></div><div id="syncBadge" class="syncBadge offline">📴 Local only</div></div><button type="button" class="primary" onclick="closeDay()">SAVE & CLOSE DAY</button></header>
-<nav>
-<button type="button" onclick="show('daily')">Daily Sale</button>
-<button type="button" onclick="show('history')">History</button>
-<button type="button" onclick="show('analytics')">Analytics</button>
-<button type="button" onclick="show('settings')">Products / Prices</button>
-<label class="filebtn">Import Excel <input id="excel" type="file" accept=".xlsx,.xls,.csv" hidden></label>
-</nav>
-
-<section id="daily" class="view active">
-<div class="cards">
-<div class="card glass"><div class="label">Today's Sales</div><div class="value" id="totalSales">0 AFN</div></div>
-<div class="card glass"><div class="label">Today's Profit</div><div class="value" id="totalProfit">0 AFN</div></div>
-<div class="card glass"><div class="label">Sales Entries</div><div class="value" id="entryCount">0</div></div>
-<div class="card glass"><div class="label">Current Date</div><div class="value" id="dateCard"></div></div>
+  <header class="top">
+    <div class="title"><h1>🎓 University Study System</h1><p>Your offline lecture, chapter and study-rhythm manager</p></div>
+    <button class="btn" id="addBtn">＋ Add</button>
+  </header>
+  <nav class="nav" id="nav">
+    <button class="active" data-page="home">🏠 Home</button>
+    <button data-page="courses">📚 Courses</button>
+    <button data-page="revision">🧠 Revision</button>
+    <button data-page="study">⏱ Study</button>
+    <button data-page="progress">📊 Progress</button>
+  </nav>
+  <main id="main"></main>
 </div>
 
-<div class="prodTabs">
-<button type="button" class="prodTabBtn active" data-tab="soap" onclick="showProd('soap')">🧼 Soap</button>
-<button type="button" class="prodTabBtn" data-tab="wasleen" onclick="showProd('wasleen')">🫧 Wasleen</button>
-<button type="button" class="prodTabBtn" data-tab="shampoo" onclick="showProd('shampoo')">🧴 Shampoo</button>
-<button type="button" class="prodTabBtn" data-tab="surf" onclick="showProd('surf')">🧽 Surf</button>
-</div>
-<div class="prodGrid">
-<div class="section glass prodSection active" data-tab="soap"><h2>🧼 Soap — 40 sales</h2><table class="prodTable"><colgroup><col style="width:12%"><col style="width:29%"><col style="width:29%"><col style="width:30%"></colgroup><thead><tr><th>#</th><th>A Price</th><th>S Price</th><th>Profit</th></tr></thead><tbody id="soap"></tbody></table></div>
-<div class="section glass prodSection" data-tab="wasleen"><h2>🫧 Wasleen — 40 sales</h2><table class="prodTable"><colgroup><col style="width:10%"><col style="width:20%"><col style="width:22%"><col style="width:22%"><col style="width:26%"></colgroup><thead><tr><th>#</th><th>KG</th><th>S Price</th><th>Price / KG</th><th>Profit</th></tr></thead><tbody id="wasleen"></tbody></table></div>
-<div class="section glass prodSection" data-tab="shampoo"><h2>🧴 Shampoo — 40 sales (20 + 20)</h2><table class="prodTable"><colgroup><col style="width:10%"><col style="width:20%"><col style="width:18%"><col style="width:22%"><col style="width:30%"></colgroup><thead><tr><th>#</th><th>Type</th><th>Litre</th><th>S Price</th><th>Profit</th></tr></thead><tbody id="shampoo"></tbody></table></div>
-<div class="section glass prodSection" data-tab="surf"><h2>🧽 Surf — 40 sales</h2><table class="prodTable"><colgroup><col style="width:12%"><col style="width:29%"><col style="width:29%"><col style="width:30%"></colgroup><thead><tr><th>#</th><th>A Price</th><th>S Price</th><th>Profit</th></tr></thead><tbody id="surf"></tbody></table></div>
+<div class="modal" id="modal">
+ <div class="box">
+  <div class="row" style="justify-content:space-between"><h2 id="modalTitle">Add</h2><button class="btn secondary" id="close">Close</button></div>
+  <form id="form"></form>
+ </div>
 </div>
 
-<div class="section glass"><h2>Daily Totals & Expenses</h2><div class="totals">
-<div class="card glass"><div class="label">Soap Sales</div><div class="value" id="soapSales">0</div><div class="small" id="soapProfit">Profit 0</div></div>
-<div class="card glass"><div class="label">Wasleen Sales</div><div class="value" id="wasleenSales">0</div><div class="small" id="wasleenProfit">Profit 0</div></div>
-<div class="card glass"><div class="label">Shampoo Sales</div><div class="value" id="shampooSales">0</div><div class="small" id="shampooProfit">Profit 0</div></div>
-<div class="card glass"><div class="label">Surf Sales</div><div class="value" id="surfSales">0</div><div class="small" id="surfProfit">Profit 0</div></div>
-<div class="card glass"><div class="label">Expenses</div><input id="expenses" type="number" step="0.01" placeholder="0"></div>
-</div></div>
-</section>
-
-<section id="history" class="view"><div class="section glass"><h2>📚 Saved Days (unlimited)</h2><div id="historyList"></div></div><div id="detail"></div></section>
-
-<section id="analytics" class="view">
-<div class="section glass analyticsPanel">
-  <h2>📊 Shop Analysis & Improvement</h2>
-  <p class="panelSub">Your saved days are analyzed automatically. Charts use your real sales and profit history.</p>
-  <div class="metricGrid" id="analyticsCards"></div>
-</div>
-<div class="analyticsGrid">
-  <div class="section glass analyticsPanel"><h3>📈 Sales & Profit Trend</h3><p class="panelSub">Last 30 saved days</p><div id="analyticsTrend" class="chartBox"></div></div>
-  <div class="section glass analyticsPanel"><h3>🧼 Product Performance</h3><p class="panelSub">Sales and profit by product</p><div id="analyticsProductChart" class="chartBox"></div></div>
-</div>
-<div class="section glass analyticsPanel">
-  <h3>📅 What to Improve Each Day of the Week</h3>
-  <p class="panelSub">Average performance by weekday. Recommendations become more accurate as you save more days.</p>
-  <div id="weekdayAnalysis" class="weekGrid"></div>
-</div>
-<div class="section glass analyticsPanel"><h3>🔎 Smart Insights</h3><div id="analyticsInsights"></div></div>
-<div class="section glass analyticsPanel"><h3>📋 Per-Product Totals</h3><div id="analyticsProducts"></div></div>
-</section>
-
-<section id="settings" class="view"><div class="section glass"><h2>⚙ Product / Price Settings</h2>
-<p>These are defaults for the current day's calculations. Each row stores its own A Price, so changing settings later will not change old days.</p>
-<div class="grid2"><div>Soap default A Price<input id="setSoap" type="number" step=".01"></div><div>Surf default A Price<input id="setSurf" type="number" step=".01"></div><div>Wasleen A Price / KG<input id="setWasleen" type="number" step=".01"></div><div>Shampoo first 20 A Price / L<input id="setSh10" type="number" step=".01" value="5"></div><div>Shampoo second 20 A Price / L<input id="setSh6" type="number" step=".01" value="8"></div></div><br><button type="button" class="primary" onclick="saveSettings()">Save Settings</button>
-<hr><p><b>Excel import:</b> click "Import Excel" above, pick your sheet, then match your columns (Date, Sales, Profit, per-product if you have them). You choose the mapping, so it works with your existing workbook exactly as it is. Imported days are added to History and included in Analytics.</p>
-<div id="importArea"></div>
-</div></section>
-</div>
 <script>
-function appAlert(msg){
-  return new Promise(resolve=>{
-    const ov=document.getElementById('modalOverlay'),btns=document.getElementById('modalBtns');
-    document.getElementById('modalMsg').textContent=msg;
-    btns.innerHTML='';
-    const ok=document.createElement('button');ok.textContent='OK';ok.className='mbPrimary';
-    ok.onclick=()=>{ov.style.display='none';resolve(true)};
-    btns.appendChild(ok);
-    ov.style.display='flex';
-    ok.focus();
-  });
-}
-function appConfirm(msg){
-  return new Promise(resolve=>{
-    const ov=document.getElementById('modalOverlay'),btns=document.getElementById('modalBtns');
-    document.getElementById('modalMsg').textContent=msg;
-    btns.innerHTML='';
-    const cancel=document.createElement('button');cancel.textContent='Cancel';cancel.className='mbSecondary';
-    cancel.onclick=()=>{ov.style.display='none';resolve(false)};
-    const ok=document.createElement('button');ok.textContent='OK';ok.className='mbPrimary';
-    ok.onclick=()=>{ov.style.display='none';resolve(true)};
-    btns.appendChild(cancel);btns.appendChild(ok);
-    ov.style.display='flex';
-    ok.focus();
-  });
-}
-const KEY='daily_shop_v3', SET='daily_shop_settings_v3';
-const PRODUCT_KEYS=['soap','wasleen','shampoo10','shampoo6','surf'];
+const KEY="university-study-system-v1";
+let db=JSON.parse(localStorage.getItem(KEY)||'{"semesters":[],"subjects":[],"chapters":[],"lectures":[],"sessions":[],"revisions":[],"settings":{"semester":"Current Semester"}}');
+const save=()=>localStorage.setItem(KEY,JSON.stringify(db));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 const today=()=>new Date().toISOString().slice(0,10);
-async function storageGet(key){
-  if(typeof window.storage!=='undefined' && window.storage){
-    try{ const r=await window.storage.get(key,false); return r?r.value:null }catch(e){ return null }
-  }
-  try{ return localStorage.getItem(key) }catch(e){ return null }
+const statusBadge=s=>`<span class="badge ${s==="Completed"?"ok":""}">${esc(s)}</span>`;
+function render(page="home"){
+ document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
+ const total=db.chapters.length, done=db.chapters.filter(x=>x.status==="Completed").length;
+ const sessionsToday=db.sessions.filter(x=>x.date===today()).length;
+ const due=db.revisions.filter(x=>x.date<=today()&&!x.done).length;
+ let html="";
+ if(page==="home") html=home(total,done,sessionsToday,due);
+ if(page==="courses") html=courses();
+ if(page==="revision") html=revision();
+ if(page==="study") html=study();
+ if(page==="progress") html=progress();
+ document.getElementById("main").innerHTML=html;
+ bind();
 }
-function storageSet(key,value){
-  if(typeof window.storage!=='undefined' && window.storage){
-    window.storage.set(key,value,false).catch(()=>{});
-    return;
-  }
-  try{ localStorage.setItem(key,value) }catch(e){}
+function home(total,done,s,due){
+ const pct=total?Math.round(done/total*100):0;
+ const next=db.chapters.find(x=>x.status!=="Completed");
+ return `<div class="grid">
+ <div class="stat"><b>${total}</b><span>Chapters</span></div><div class="stat"><b>${done}</b><span>Completed</span></div>
+ <div class="stat"><b>${due}</b><span>Revisions due</span></div><div class="stat"><b>${s}</b><span>Sessions today</span></div></div>
+ <section class="panel"><h2>Today's direction</h2>
+ ${next?`<div class="item"><div><b>${esc(next.name)}</b><br><small>${esc(subjectName(next.subjectId))}</small><div class="progress"><i style="width:${next.status==="Studying"?50:0}%"></i></div></div><button class="btn" data-study-chapter="${next.id}">▶ Continue</button></div>`:`<div class="empty">No unfinished chapters. Add your next chapter.</div>`}</section>
+ <section class="panel"><h2>Semester progress</h2><b>${pct}%</b><div class="progress"><i style="width:${pct}%"></i></div></section>
+ <section class="panel"><h2>Quick actions</h2><div class="row"><button class="btn" data-add="subject">＋ Subject</button><button class="btn secondary" data-add="chapter">＋ Chapter</button><button class="btn secondary" data-add="lecture">＋ Lecture + Files</button></div></section>`;
 }
-const firebaseConfig={apiKey:"AIzaSyBDNC1IxI90kCIJ1MXYQxsGJtjFOTLVY2o",authDomain:"shop-calculation-app.firebaseapp.com",projectId:"shop-calculation-app",storageBucket:"shop-calculation-app.firebasestorage.app",messagingSenderId:"898165250770",appId:"1:898165250770:web:598dc9b7457bd8db432b0b"};
-let db=null,fbReady=false,applyingRemote=false,pendingRerender=false;
-document.addEventListener('focusout',e=>{
-  if(pendingRerender && (e.target.tagName==='INPUT'||e.target.tagName==='SELECT')){
-    pendingRerender=false;
-    setTimeout(()=>{ if(!document.activeElement||(document.activeElement.tagName!=='INPUT'&&document.activeElement.tagName!=='SELECT')) render(); },0);
-  }
-});
-function setSyncBadge(text,cls){const el=document.getElementById('syncBadge');if(el){el.textContent=text;el.className='syncBadge '+cls}}
-function waitForFirebase(){
-  return new Promise(resolve=>{
-    if(window.firebase) return resolve(true);
-    let tries=0;
-    const iv=setInterval(()=>{
-      if(window.firebase){clearInterval(iv);resolve(true)}
-      else if(++tries>50){clearInterval(iv);resolve(false)}
-    },100);
-  });
+function subjectName(id){return db.subjects.find(x=>x.id===id)?.name||"No subject";}
+function courses(){
+ if(!db.subjects.length)return `<section class="panel"><div class="empty">No subjects yet.<br><br><button class="btn" data-add="subject">＋ Add first subject</button></div></section>`;
+ return `<section class="panel"><h2>Courses</h2><div class="list">${db.subjects.map(s=>{
+ const cs=db.chapters.filter(c=>c.subjectId===s.id); const done=cs.filter(c=>c.status==="Completed").length; const pct=cs.length?Math.round(done/cs.length*100):0;
+ return `<div class="item"><div style="flex:1"><b>${esc(s.name)}</b><br><small>${cs.length} chapters · ${pct}% complete</small><div class="progress"><i style="width:${pct}%"></i></div></div><button class="btn secondary" data-open-sub="${s.id}">Open</button></div>`}).join("")}</div></section>`;
 }
-async function initFirebaseSync(){
-  const ok=await waitForFirebase();
-  if(!ok){setSyncBadge('📴 Local only','offline');return}
-  try{
-    firebase.initializeApp(firebaseConfig);
-    db=firebase.firestore();
-    try{ await db.enablePersistence({synchronizeTabs:true}); }catch(e){}
-    fbReady=true;
-    setSyncBadge(navigator.onLine?'☁️ Synced':'📴 Offline (will sync)','offline');
-    const isTyping=()=>{let a=document.activeElement;return a&&(a.tagName==='INPUT'||a.tagName==='SELECT')};
-    db.collection('shopData').doc('settings').onSnapshot(snap=>{
-      if(snap.exists){
-        let incoming=snap.data();
-        if(JSON.stringify(incoming)!==JSON.stringify(settings)){
-          applyingRemote=true;settings=incoming;
-          if(isTyping()) pendingRerender=true; else render();
-          applyingRemote=false;
-        }
-      }
-      setSyncBadge(snap.metadata.fromCache?'📴 Offline (will sync)':'☁️ Synced',snap.metadata.fromCache?'offline':'online');
-    },()=>{setSyncBadge('⚠️ Sync error','offline')});
-    db.collection('shopData').doc('state').onSnapshot(snap=>{
-      if(snap.exists){
-        let incoming=snap.data();
-        if(JSON.stringify(incoming)!==JSON.stringify(state)){
-          applyingRemote=true;state=incoming;
-          if(isTyping()) pendingRerender=true; else render();
-          applyingRemote=false;
-        }
-      }
-      setSyncBadge(snap.metadata.fromCache?'📴 Offline (will sync)':'☁️ Synced',snap.metadata.fromCache?'offline':'online');
-    },()=>{setSyncBadge('⚠️ Sync error','offline')});
-    window.addEventListener('online',()=>setSyncBadge('☁️ Synced','online'));
-    window.addEventListener('offline',()=>setSyncBadge('📴 Offline (will sync)','offline'));
-  }catch(e){setSyncBadge('📴 Local only','offline')}
+function revision(){
+ const rows=db.revisions.filter(r=>!r.done).sort((a,b)=>a.date.localeCompare(b.date));
+ return `<section class="panel"><h2>🧠 Revision queue</h2>${rows.length?`<div class="list">${rows.map(r=>`<div class="item"><div><b>${esc(chapterName(r.chapterId))}</b><br><small>Due ${esc(r.date)}</small></div><button class="btn" data-done-rev="${r.id}">Done</button></div>`).join("")}`:`<div class="empty">No revisions due. When you finish chapters, revision dates will be created.</div>`}</section>`;
 }
-function cloudSave(doc,data){ if(fbReady && db && !applyingRemote){ db.collection('shopData').doc(doc).set(data).catch(()=>{}); } }
-let settings={soap:0,surf:0,wasleen:57,sh10:5,sh6:8};
-let state=blankState();
-function blankState(){return {openDate:today(),rows:emptyRows(),expenses:0,history:[]}}
-function emptyRows(){return {soap:Array(40).fill(null),wasleen:Array(40).fill(null),shampoo:Array(40).fill(null),surf:Array(40).fill(null)}}
-function hasData(){return Object.values(state.rows).some(a=>a.some(x=>x))||Number(state.expenses)>0}
-function advanceDay(d){state.openDate=d;state.rows=emptyRows();state.expenses=0;save()}
-function save(){storageSet(KEY,JSON.stringify(state));cloudSave('state',state)}
-async function init(){
-  try{
-    const [sRaw,stRaw]=await Promise.all([storageGet(SET),storageGet(KEY)]);
-    if(sRaw) settings=JSON.parse(sRaw);
-    if(stRaw) state=JSON.parse(stRaw);
-  }catch(e){}
-  if(state.openDate!==today()){ if(hasData()) appAlert('A previous day ('+state.openDate+') is still open with unsaved sales. Continue it or press SAVE & CLOSE DAY before starting a new day.'); else advanceDay(today()); }
-  render();
-  initFirebaseSync();
+function chapterName(id){return db.chapters.find(x=>x.id===id)?.name||"Chapter";}
+function study(){
+ return `<section class="panel"><h2>⏱ Study session</h2><div style="font-size:46px;font-weight:750;text-align:center;margin:20px" id="timer">25:00</div><div class="row" style="justify-content:center"><button class="btn" id="startTimer">Start 25 min</button><button class="btn secondary" id="resetTimer">Reset</button></div><p style="color:var(--muted);text-align:center">When you finish, log the session to keep your rhythm.</p><button class="btn" data-log-session style="width:100%">＋ Log study session</button></section>
+ <section class="panel"><h2>Recent sessions</h2>${db.sessions.length?`<div class="list">${db.sessions.slice().reverse().slice(0,10).map(x=>`<div class="item"><div><b>${esc(x.minutes)} minutes</b><br><small>${esc(x.date)} · ${esc(x.note||"Study session")}</small></div></div>`).join("")}`:`<div class="empty">No sessions yet.</div>`}</section>`;
 }
-function money(n){return (Number(n)||0).toFixed(2)}
-function val(v){return v===''||v==null?'':Number(v)}
-function rowInput(type,i,field,value,step='0.01'){return `<input type="number" step="${step}" value="${value??''}" oninput="setRow('${type}',${i},'${field}',this.value)">`}
-function render(){
-document.getElementById('todayLabel').textContent='Working day: '+state.openDate; document.getElementById('dateCard').textContent=state.openDate;
-buildSoap();buildWasleen();buildShampoo();buildSurf();calc();
-const exp=document.getElementById('expenses');
-exp.value=state.expenses||'';
-exp.oninput=e=>{state.expenses=(e.target.value===''?0:Number(e.target.value));save();calc();};
-renderHistory();loadSettings();
+function progress(){
+ const hours=Math.round(db.sessions.reduce((a,x)=>a+(Number(x.minutes)||0),0)/60*10)/10;
+ return `<section class="panel"><h2>📊 Your progress</h2><div class="grid"><div class="stat"><b>${hours}h</b><span>Total study</span></div><div class="stat"><b>${db.sessions.length}</b><span>Sessions</span></div><div class="stat"><b>${db.lectures.length}</b><span>Lectures</span></div><div class="stat"><b>${db.chapters.filter(x=>x.status==="Completed").length}</b><span>Finished</span></div></div></section>
+ <section class="panel"><h2>Subject progress</h2><div class="list">${db.subjects.map(s=>{let c=db.chapters.filter(x=>x.subjectId===s.id),d=c.filter(x=>x.status==="Completed").length,p=c.length?Math.round(d/c.length*100):0;return `<div><b>${esc(s.name)}</b><small style="float:right">${p}%</small><div class="progress"><i style="width:${p}%"></i></div></div>`}).join("")||'<div class="empty">Add subjects to see progress.</div>'}</div></section>`;
 }
-function buildSoap(){let h='';for(let i=0;i<40;i++){let r=state.rows.soap[i]||{};let ap=r.ap??settings.soap;h+=`<tr><td>${i+1}</td><td>${rowInput('soap',i,'ap',ap)}</td><td>${rowInput('soap',i,'sp',r.sp)}</td><td id="soap_profit_${i}">${money((r.sp||0)-(r.ap||ap||0))}</td></tr>`}document.getElementById('soap').innerHTML=h}
-function buildWasleen(){let h='';for(let i=0;i<40;i++){let r=state.rows.wasleen[i]||{};let kg=r.kg||'',sp=r.sp||'',ap=r.ap??settings.wasleen;let pkg=kg?sp/kg:0,profit=(sp||0)-((kg||0)*(r.ap||ap||0));h+=`<tr><td>${i+1}</td><td>${rowInput('wasleen',i,'kg',kg,'0.01')}</td><td>${rowInput('wasleen',i,'sp',sp)}</td><td id="wasleen_pkg_${i}">${money(pkg)}</td><td id="wasleen_profit_${i}">${money(profit)}</td></tr>`}document.getElementById('wasleen').innerHTML=h}
-function buildShampoo(){let h='';
-for(let i=0;i<40;i++){
-  if(i===0) h+=`<tr class="grpHeader"><td colspan="5">🧴 10 KG Shampoo</td></tr>`;
-  if(i===20) h+=`<tr class="grpHeader divider"><td colspan="5">🧴 6 KG Shampoo</td></tr>`;
-  let r=state.rows.shampoo[i]||{};let ap=r.ap??(i<20?settings.sh10:settings.sh6),lit=r.lit||'',sp=r.sp||'',profit=(sp||0)-((lit||0)*(r.ap||ap||0));h+=`<tr><td>${i+1}</td><td>Shampoo</td><td>${rowInput('shampoo',i,'lit',lit,'0.01')}</td><td>${rowInput('shampoo',i,'sp',sp)}</td><td id="shampoo_profit_${i}">${money(profit)}</td></tr>`}
-document.getElementById('shampoo').innerHTML=h}
-function buildSurf(){let h='';for(let i=0;i<40;i++){let r=state.rows.surf[i]||{};let ap=r.ap??settings.surf;h+=`<tr><td>${i+1}</td><td>${rowInput('surf',i,'ap',ap)}</td><td>${rowInput('surf',i,'sp',r.sp)}</td><td id="surf_profit_${i}">${money((r.sp||0)-(r.ap||ap||0))}</td></tr>`}document.getElementById('surf').innerHTML=h}
-function setRow(type,i,field,v){
-  if(!state.rows[type][i]) state.rows[type][i]={};
-  state.rows[type][i][field]=(v==='' ? null : Number(v));
-  save();updateRowCalc(type,i);calc();
+function openModal(type){
+ const title={subject:"Add Subject",chapter:"Add Chapter",lecture:"Add Lecture / Material",session:"Log Study Session"}[type];
+ let body="";
+ if(type==="subject")body=`<div class="field"><label>Subject name</label><input name="name" required placeholder="Algorithms"></div>`;
+ if(type==="chapter")body=`<div class="field"><label>Subject</label><select name="subjectId" required>${db.subjects.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join("")}</select></div><div class="field"><label>Chapter name</label><input name="name" required placeholder="Dynamic Programming"></div>`;
+ if(type==="lecture")body=`<div class="field"><label>Subject</label><select name="subjectId" required>${db.subjects.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join("")}</select></div><div class="field"><label>Chapter</label><select name="chapterId" required>${db.chapters.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("")}</select></div><div class="field"><label>Lecture / material title</label><input name="name" required placeholder="Lecture 4 — Merge Sort"></div><div class="field"><label>Your notes</label><textarea name="notes" placeholder="Important points..."></textarea></div><div class="field"><label>Files — PDF, Office, images, audio, video, ZIP, text, etc.</label><input type="file" name="files" multiple></div>`;
+ if(type==="session")body=`<div class="field"><label>Minutes studied</label><input type="number" name="minutes" min="1" required value="25"></div><div class="field"><label>What did you study?</label><input name="note" placeholder="Algorithms — Quick Sort"></div>`;
+ document.getElementById("modalTitle").textContent=title; document.getElementById("form").innerHTML=body+`<div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" type="submit">Save</button></div>`;
+ document.getElementById("modal").classList.add("show");
+ document.getElementById("form").dataset.type=type;
 }
-function updateRowCalc(type,i){
-  let r=state.rows[type][i]||{};
-  if(type==='soap'||type==='surf'){
-    let ap=r.ap??settings[type];
-    let el=document.getElementById(type+'_profit_'+i);
-    if(el) el.textContent=money((r.sp||0)-(r.ap||ap||0));
-  } else if(type==='wasleen'){
-    let kg=r.kg||0,sp=r.sp||0,ap=r.ap??settings.wasleen;
-    let pkg=kg?sp/kg:0,profit=(r.sp||0)-((kg||0)*(r.ap||ap||0));
-    let elP=document.getElementById('wasleen_pkg_'+i); if(elP) elP.textContent=money(pkg);
-    let elPr=document.getElementById('wasleen_profit_'+i); if(elPr) elPr.textContent=money(profit);
-  } else if(type==='shampoo'){
-    let ap=r.ap??(i<20?settings.sh10:settings.sh6),lit=r.lit||0;
-    let profit=(r.sp||0)-((lit||0)*(r.ap||ap||0));
-    let el=document.getElementById('shampoo_profit_'+i);
-    if(el) el.textContent=money(profit);
-  }
+async function submitForm(e){
+ e.preventDefault(); const f=new FormData(e.target),type=e.target.dataset.type;
+ if(type==="subject")db.subjects.push({id:uid(),name:f.get("name")});
+ if(type==="chapter"){db.chapters.push({id:uid(),subjectId:f.get("subjectId"),name:f.get("name"),status:"Not Started"});}
+ if(type==="session")db.sessions.push({id:uid(),date:today(),minutes:Number(f.get("minutes")),note:f.get("note")});
+ if(type==="lecture"){
+   const files=[...e.target.querySelector('[name=files]').files].map(x=>({name:x.name,type:x.type,size:x.size}));
+   db.lectures.push({id:uid(),subjectId:f.get("subjectId"),chapterId:f.get("chapterId"),name:f.get("name"),notes:f.get("notes"),files,date:today()});
+ }
+ save(); document.getElementById("modal").classList.remove("show"); render(currentPage);
 }
-function calc(){
-let sums={soap:[0,0],wasleen:[0,0],shampoo:[0,0],surf:[0,0]},count=0;
-const cellProfit=(type,i)=>{let el=document.getElementById(type+'_profit_'+i);return el?(parseFloat(el.textContent)||0):0};
-state.rows.soap.forEach((r,i)=>{if(r?.sp!=null){sums.soap[0]+=r.sp;sums.soap[1]+=cellProfit('soap',i);count++}});
-state.rows.wasleen.forEach((r,i)=>{if(r?.sp!=null){sums.wasleen[0]+=r.sp;sums.wasleen[1]+=cellProfit('wasleen',i);count++}});
-state.rows.shampoo.forEach((r,i)=>{if(r?.sp!=null){sums.shampoo[0]+=r.sp;sums.shampoo[1]+=cellProfit('shampoo',i);count++}});
-state.rows.surf.forEach((r,i)=>{if(r?.sp!=null){sums.surf[0]+=r.sp;sums.surf[1]+=cellProfit('surf',i);count++}});
-let sales=Object.values(sums).reduce((a,x)=>a+x[0],0),profit=Object.values(sums).reduce((a,x)=>a+x[1],0);
-document.getElementById('totalSales').textContent=money(sales)+' AFN';document.getElementById('totalProfit').textContent=money(profit-Number(state.expenses||0))+' AFN';document.getElementById('entryCount').textContent=count;
-[['soap',sums.soap],['wasleen',sums.wasleen],['shampoo',sums.shampoo],['surf',sums.surf]].forEach(([k,x])=>{document.getElementById(k+'Sales').textContent=money(x[0]);document.getElementById(k+'Profit').textContent='Profit '+money(x[1])});
+let currentPage="home",timer=null,remaining=1500;
+function bind(){
+ document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>{currentPage=b.dataset.page;render(currentPage)});
+ document.getElementById("addBtn").onclick=()=>openModal("subject");
+ document.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>openModal(b.dataset.add));
+ document.querySelectorAll("[data-done-rev]").forEach(b=>b.onclick=()=>{let r=db.revisions.find(x=>x.id===b.dataset.doneRev);if(r)r.done=true;save();render(currentPage)});
+ document.querySelectorAll("[data-study-chapter]").forEach(b=>b.onclick=()=>{let c=db.chapters.find(x=>x.id===b.dataset.studyChapter);if(c)c.status="Studying";save();currentPage="study";render("study")});
+ document.querySelectorAll("[data-log-session]").forEach(b=>b.onclick=()=>openModal("session"));
+ const st=document.getElementById("startTimer"),rs=document.getElementById("resetTimer");
+ if(st)st.onclick=()=>{if(timer)return;timer=setInterval(()=>{remaining--;updateTimer();if(remaining<=0){clearInterval(timer);timer=null;alert("Study session complete.");}},1000)};
+ if(rs)rs.onclick=()=>{clearInterval(timer);timer=null;remaining=1500;updateTimer()};
 }
-async function closeDay(){
-if(!hasData()){await appAlert('There are no sales to close.');return}
-calc();let sums=aggregate();let ok=await appConfirm(`${state.openDate}\nTotal Sales: ${money(sums.totalSales)} AFN\nTotal Profit after expenses: ${money(sums.netProfit)} AFN\nSales entries: ${sums.count}\n\nSAVE & CLOSE DAY?`);if(!ok)return;
-addHistoryEntry({date:state.openDate,summary:sums,rows:state.rows,expenses:Number(state.expenses||0),closedAt:new Date().toISOString()});
-advanceDay(today());
-render();await appAlert('Day saved successfully. A fresh daily sheet is ready. Your saved days are never deleted automatically — History keeps every day, with no limit.');
-}
-function addHistoryEntry(entry){
-  let i=state.history.findIndex(d=>d.date===entry.date);
-  if(i>=0) state.history[i]=entry; else state.history.push(entry);
-  state.history.sort((a,b)=>a.date<b.date?-1:1);
-  save();
-}
-function aggregate(){let s={soap:[0,0,0],wasleen:[0,0,0],shampoo10:[0,0,0],shampoo6:[0,0,0],surf:[0,0,0]},count=0;
-const cellProfit=(type,i)=>{let el=document.getElementById(type+'_profit_'+i);return el?(parseFloat(el.textContent)||0):0};
-state.rows.soap.forEach((r,i)=>{if(r?.sp!=null){s.soap[0]+=1;s.soap[1]+=r.sp;s.soap[2]+=cellProfit('soap',i);count++}});
-state.rows.wasleen.forEach((r,i)=>{if(r?.sp!=null){s.wasleen[0]+=r.kg||0;s.wasleen[1]+=r.sp;s.wasleen[2]+=cellProfit('wasleen',i);count++}});
-state.rows.shampoo.forEach((r,i)=>{if(r?.sp!=null){let k=i<20?'shampoo10':'shampoo6';s[k][0]+=r.lit||0;s[k][1]+=r.sp;s[k][2]+=cellProfit('shampoo',i);count++}});
-state.rows.surf.forEach((r,i)=>{if(r?.sp!=null){s.surf[0]+=1;s.surf[1]+=r.sp;s.surf[2]+=cellProfit('surf',i);count++}});
-let totalSales=Object.values(s).reduce((a,x)=>a+x[1],0),gross=Object.values(s).reduce((a,x)=>a+x[2],0),netProfit=gross-Number(state.expenses||0);return {products:s,totalSales,grossProfit:gross,expenses:Number(state.expenses||0),netProfit,count}}
-function renderHistory(){let h='';[...state.history].reverse().forEach((d)=>{let idx=state.history.findIndex(x=>x.date===d.date);h+=`<div class="section glass"><b>${d.date}</b>${d.imported?' <span class="small">(imported)</span>':''}<br>Sales: ${money(d.summary.totalSales)} AFN &nbsp; Profit: ${money(d.summary.netProfit)} AFN &nbsp; Entries: ${d.summary.count} <button type="button" onclick="detail(${idx})">View details</button></div>`});document.getElementById('historyList').innerHTML=h||'<p>No saved days yet.</p>'}
-function detail(i){let d=state.history[i],s=d.summary.products||{};
-let rows=[
-  ['Soap',s.soap],['Wasleen',s.wasleen],['Shampoo 10',s.shampoo10],['Shampoo 6',s.shampoo6],['Surf',s.surf],['Imported / Other',s.other]
-].filter(([_,v])=>v);
-let body=rows.map(([label,v])=>`<tr><td>${label}</td><td>${money(v[0])}</td><td>${money(v[1])}</td><td>${money(v[2])}</td></tr>`).join('');
-document.getElementById('detail').innerHTML=`<div class="section glass"><h2>${d.date} — Combined Daily Record</h2><table><tr><th>Product</th><th>Quantity</th><th>Total Sales</th><th>Total Profit</th></tr>
-${body}
-<tr><th>Daily Total</th><th></th><th>${money(d.summary.totalSales)}</th><th>${money(d.summary.netProfit)}</th></tr></table><p>Expenses: ${money(d.expenses)} AFN</p></div>`;
-show('history');window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});
-}
-function saveSettings(){settings={soap:val(document.getElementById('setSoap').value),surf:val(document.getElementById('setSurf').value),wasleen:val(document.getElementById('setWasleen').value),sh10:val(document.getElementById('setSh10').value)||5,sh6:val(document.getElementById('setSh6').value)||8};storageSet(SET,JSON.stringify(settings));cloudSave('settings',settings);appAlert('Settings saved. Existing entered rows keep their own A Price.');render()}
-function loadSettings(){document.getElementById('setSoap').value=settings.soap??'';document.getElementById('setSurf').value=settings.surf??'';document.getElementById('setWasleen').value=settings.wasleen??57;document.getElementById('setSh10').value=settings.sh10??5;document.getElementById('setSh6').value=settings.sh6??8}
-function show(id){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');if(id==='history')renderHistory();if(id==='analytics')renderAnalytics()}
-function showProd(tab){
-  document.querySelectorAll('.prodSection').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));
-  document.querySelectorAll('.prodTabBtn').forEach(x=>x.classList.toggle('active',x.dataset.tab===tab));
-}
-
-/* ---------- Analytics ---------- */
-function svgLineChart(days){
-  if(!days.length)return '<div class="chartEmpty">Save at least one day to see the chart.</div>';
-  const W=760,H=250,p={l:46,r:16,t:18,b:38}, iw=W-p.l-p.r, ih=H-p.t-p.b;
-  const max=Math.max(...days.flatMap(d=>[d.summary.totalSales||0,d.summary.netProfit||0]),1);
-  const x=i=>p.l+(days.length===1?iw/2:i*iw/(days.length-1));
-  const y=v=>p.t+ih-(Math.max(0,v)/max)*ih;
-  const sales=days.map((d,i)=>`${x(i)},${y(d.summary.totalSales||0)}`).join(' ');
-  const profit=days.map((d,i)=>`${x(i)},${y(d.summary.netProfit||0)}`).join(' ');
-  const grid=[0,.25,.5,.75,1].map(t=>{let yy=p.t+ih-t*ih;return `<line x1="${p.l}" y1="${yy}" x2="${W-p.r}" y2="${yy}" stroke="rgba(100,140,170,.16)"/><text x="${p.l-8}" y="${yy+4}" text-anchor="end" font-size="10" fill="#71869a">${money(max*t)}</text>`}).join('');
-  const labels=days.map((d,i)=>{if(days.length>10 && i%Math.ceil(days.length/6)!==0 && i!==days.length-1)return '';return `<text x="${x(i)}" y="${H-12}" text-anchor="middle" font-size="10" fill="#71869a">${d.date.slice(5)}</text>`}).join('');
-  const dots=days.map((d,i)=>`<circle cx="${x(i)}" cy="${y(d.summary.totalSales||0)}" r="3" fill="#3e8cff"/><circle cx="${x(i)}" cy="${y(d.summary.netProfit||0)}" r="3" fill="#16a66a"/>`).join('');
-  return `<svg class="svgChart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><defs><linearGradient id="salesGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5db8ff" stop-opacity=".22"/><stop offset="1" stop-color="#5db8ff" stop-opacity="0"/></linearGradient></defs>${grid}<polygon points="${sales} ${x(days.length-1)},${p.t+ih} ${x(0)},${p.t+ih}" fill="url(#salesGrad)"/><polyline points="${sales}" fill="none" stroke="#3e8cff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><polyline points="${profit}" fill="none" stroke="#16a66a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>${dots}${labels}<text x="${p.l}" y="12" font-size="10" fill="#3e8cff">Sales</text><text x="${p.l+58}" y="12" font-size="10" fill="#16a66a">Net profit</text></svg>`;
-}
-function svgProductChart(prodTotals,labels){
-  const rows=Object.keys(prodTotals).filter(k=>prodTotals[k][1]||prodTotals[k][2]);
-  if(!rows.length)return '<div class="chartEmpty">No product data yet.</div>';
-  const W=760,H=Math.max(240,rows.length*42+48),p={l:125,r:28,t:18,b:22},iw=W-p.l-p.r;
-  const max=Math.max(...rows.map(k=>Math.max(prodTotals[k][1],prodTotals[k][2])),1);
-  let out=`<svg class="svgChart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">`;
-  rows.forEach((k,i)=>{let y=p.t+i*42;let s=prodTotals[k][1],pr=prodTotals[k][2];out+=`<text x="${p.l-10}" y="${y+14}" text-anchor="end" font-size="11" fill="#49677f">${labels[k]}</text><rect x="${p.l}" y="${y}" width="${s/max*iw}" height="11" rx="5" fill="#5db8ff" opacity=".78"/><rect x="${p.l}" y="${y+16}" width="${pr/max*iw}" height="11" rx="5" fill="#52c99a" opacity=".82"/><text x="${Math.min(W-5,p.l+s/max*iw+6)}" y="${y+9}" font-size="9" fill="#60778b">${money(s)}</text>`});
-  out+=`<text x="${p.l}" y="${H-6}" font-size="10" fill="#3e8cff">Sales</text><text x="${p.l+50}" y="${H-6}" font-size="10" fill="#16a66a">Profit</text></svg>`;
-  return out;
-}
-function renderWeekdayAnalysis(h){
-  const names=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  const buckets=names.map(()=>[]);
-  h.forEach(d=>{const dt=new Date(d.date+'T00:00:00'); if(!isNaN(dt)) buckets[dt.getDay()].push(d)});
-  const valid=buckets.filter(a=>a.length);
-  const maxAvg=Math.max(...valid.map(a=>a.reduce((s,d)=>s+(d.summary.totalSales||0),0)/a.length),1);
-  if(!valid.length){document.getElementById('weekdayAnalysis').innerHTML='<div class="chartEmpty">Save days to unlock weekday analysis.</div>';return}
-  document.getElementById('weekdayAnalysis').innerHTML=buckets.map((arr,i)=>{
-    if(!arr.length)return `<div class="weekDay"><div class="weekDayName">${names[i]}</div><div class="weekSmall">No data yet</div></div>`;
-    const sales=arr.reduce((s,d)=>s+(d.summary.totalSales||0),0)/arr.length;
-    const profit=arr.reduce((s,d)=>s+(d.summary.netProfit||0),0)/arr.length;
-    const margin=sales?profit/sales*100:0;
-    const recent=arr.slice(-3).reduce((s,d)=>s+(d.summary.totalSales||0),0)/Math.min(3,arr.length);
-    let advice= sales===Math.max(...valid.map(a=>a.reduce((s,d)=>s+(d.summary.totalSales||0),0)/a.length)) ? 'Best sales day: keep strong stock and popular products ready.' :
-      margin<8 ? 'Improve: review prices, costs, and discounts to protect profit.' :
-      recent<sales*.85 ? 'Improve: sales are weakening recently; check demand and stock.' :
-      'Maintain: keep stock and pricing consistent.';
-    const best=sales===maxAvg;
-    return `<div class="weekDay ${best?'best':''}"><div class="weekDayName">${names[i]}${best?' ⭐':''}</div><div class="weekAvg">${money(sales)} AFN</div><div class="weekSmall">avg sales · ${arr.length} day${arr.length>1?'s':''}</div><div class="weekBar"><span style="width:${Math.max(4,sales/maxAvg*100)}%"></span></div><div class="weekSmall">Profit ${money(profit)} · ${margin.toFixed(1)}%</div><div class="weekAdvice">${advice}</div></div>`;
-  }).join('');
-}
-function renderAnalytics(){
-  let h=[...state.history].sort((a,b)=>a.date.localeCompare(b.date));
-  renderInsights(h);
-  if(!h.length){
-    document.getElementById('analyticsCards').innerHTML='<div class="metric"><div class="label">Days Recorded</div><div class="value">0</div></div>';
-    ['analyticsProducts','analyticsTrend','analyticsProductChart','weekdayAnalysis'].forEach(id=>document.getElementById(id).innerHTML='<div class="chartEmpty">Close a day or import history to start analysis.</div>');
-    return;
-  }
-  let totalSales=0,totalProfit=0,totalExpenses=0,best=h[0];
-  let prodTotals={soap:[0,0,0],wasleen:[0,0,0],shampoo10:[0,0,0],shampoo6:[0,0,0],surf:[0,0,0],other:[0,0,0]};
-  h.forEach(d=>{
-    totalSales+=d.summary.totalSales||0; totalProfit+=d.summary.netProfit||0; totalExpenses+=d.summary.expenses||d.expenses||0;
-    if((d.summary.totalSales||0)>(best.summary.totalSales||0))best=d;
-    let p=d.summary.products||{}; Object.keys(prodTotals).forEach(k=>{if(p[k]){prodTotals[k][0]+=p[k][0]||0;prodTotals[k][1]+=p[k][1]||0;prodTotals[k][2]+=p[k][2]||0}});
-  });
-  const avg=totalSales/h.length, margin=totalSales?totalProfit/totalSales*100:0;
-  document.getElementById('analyticsCards').innerHTML=`
-    <div class="metric"><div class="label">Days Recorded</div><div class="value">${h.length}</div></div>
-    <div class="metric"><div class="label">All-Time Sales</div><div class="value">${money(totalSales)}</div></div>
-    <div class="metric"><div class="label">Net Profit</div><div class="value kpiGood">${money(totalProfit)}</div></div>
-    <div class="metric"><div class="label">Profit Margin</div><div class="value ${margin<8?'kpiWarn':'kpiGood'}">${margin.toFixed(1)}%</div></div>
-    <div class="metric"><div class="label">Average Daily Sales</div><div class="value">${money(avg)}</div></div>
-    <div class="metric"><div class="label">Total Expenses</div><div class="value">${money(totalExpenses)}</div></div>
-    <div class="metric"><div class="label">Best Sales Day</div><div class="value">${money(best.summary.totalSales||0)}</div></div>
-    <div class="metric"><div class="label">Best Day</div><div class="value">${best.date}</div></div>`;
-  const labels={soap:'Soap',wasleen:'Wasleen',shampoo10:'Shampoo 10',shampoo6:'Shampoo 6',surf:'Surf',other:'Imported / Other'};
-  const rows=Object.keys(prodTotals).filter(k=>prodTotals[k][1]||prodTotals[k][2]).map(k=>`<tr><td>${labels[k]}</td><td>${money(prodTotals[k][0])}</td><td>${money(prodTotals[k][1])}</td><td>${money(prodTotals[k][2])}</td><td>${prodTotals[k][1]?(prodTotals[k][2]/prodTotals[k][1]*100).toFixed(1)+'%':'—'}</td></tr>`).join('');
-  document.getElementById('analyticsProducts').innerHTML=`<table><tr><th>Product</th><th>Quantity</th><th>Sales</th><th>Profit</th><th>Margin</th></tr>${rows}</table>`;
-  const last30=h.slice(-30);
-  document.getElementById('analyticsTrend').innerHTML=svgLineChart(last30);
-  document.getElementById('analyticsProductChart').innerHTML=svgProductChart(prodTotals,labels);
-  renderWeekdayAnalysis(h);
-}
-function renderInsights(h){
-  const box=document.getElementById('analyticsInsights');
-  if(!h.length){box.innerHTML='<p class="insightEmpty">Close a day (or import history) and insights will appear here automatically — no setup needed.</p>';return}
-  const items=computeInsights(h);
-  if(!items.length){box.innerHTML='<p class="insightEmpty">Not enough saved days yet for a confident analysis — keep closing days and check back.</p>';return}
-  box.innerHTML=items.map(it=>`<div class="insightCard ${it.type}"><b>${it.type==='good'?'✅ ':'⚠️ '}${it.title}</b>${it.detail}</div>`).join('');
-}
-function computeInsights(h){
-  const items=[];
-  const labels={soap:'Soap',wasleen:'Wasleen',shampoo10:'Shampoo 10',shampoo6:'Shampoo 6',surf:'Surf',other:'Imported/Other'};
-  const sorted=[...h].sort((a,b)=>a.date<b.date?-1:1);
-
-  /* --- Sales & profit trend: last 7 saved days vs the 7 before that --- */
-  if(sorted.length>=6){
-    const recent=sorted.slice(-7),prior=sorted.slice(-14,-7);
-    if(prior.length>=3){
-      const avg=arr=>arr.reduce((a,d)=>a+(d.summary.totalSales||0),0)/arr.length;
-      const avgP=arr=>arr.reduce((a,d)=>a+(d.summary.netProfit||0),0)/arr.length;
-      const sChg=avg(prior)?((avg(recent)-avg(prior))/avg(prior)*100):0;
-      const pChg=avgP(prior)?((avgP(recent)-avgP(prior))/Math.abs(avgP(prior))*100):0;
-      if(sChg>=8) items.push({type:'good',title:`Sales trending up ${sChg.toFixed(0)}%`,detail:`Average daily sales over your last ${recent.length} saved days (${money(avg(recent))} AFN) are up from the previous stretch (${money(avg(prior))} AFN).`});
-      else if(sChg<=-8) items.push({type:'warn',title:`Sales trending down ${Math.abs(sChg).toFixed(0)}%`,detail:`Average daily sales dropped from ${money(avg(prior))} AFN to ${money(avg(recent))} AFN over your recent saved days — worth a look.`});
-      if(pChg>=8) items.push({type:'good',title:`Profit improving`,detail:`Average daily net profit is up ${pChg.toFixed(0)}% versus the prior stretch of saved days.`});
-      else if(pChg<=-8) items.push({type:'warn',title:`Profit slipping`,detail:`Average daily net profit is down ${Math.abs(pChg).toFixed(0)}% versus the prior stretch — check pricing and expenses.`});
-    }
-  }
-
-  /* --- Per-product totals across all saved history --- */
-  const tot={};
-  h.forEach(d=>{const p=d.summary.products||{};Object.keys(p).forEach(k=>{if(!tot[k])tot[k]=[0,0,0];tot[k][0]+=p[k][0]||0;tot[k][1]+=p[k][1]||0;tot[k][2]+=p[k][2]||0})});
-  const withSales=Object.keys(tot).filter(k=>tot[k][1]>0);
-  if(withSales.length){
-    const margin=k=>tot[k][1]?tot[k][2]/tot[k][1]*100:0;
-    const best=withSales.reduce((a,b)=>margin(b)>margin(a)?b:a);
-    const worst=withSales.reduce((a,b)=>margin(b)<margin(a)?b:a);
-    if(margin(best)>=15) items.push({type:'good',title:`${labels[best]||best} is your strongest margin`,detail:`Running about ${margin(best).toFixed(0)}% profit margin across all saved days (${money(tot[best][2])} AFN profit on ${money(tot[best][1])} AFN sales).`});
-    if(withSales.length>1 && margin(worst)<8) items.push({type:'warn',title:`${labels[worst]||worst} margin is thin`,detail:`Only about ${margin(worst).toFixed(0)}% profit margin (${money(tot[worst][2])} AFN profit on ${money(tot[worst][1])} AFN sales) — consider adjusting the sale price or sourcing cost.`});
-  }
-
-  /* --- Product volume shift: last 7 saved days vs prior 7, per product --- */
-  if(sorted.length>=6){
-    const recent=sorted.slice(-7),prior=sorted.slice(-14,-7);
-    if(prior.length>=3){
-      const sumProd=(arr,k)=>arr.reduce((a,d)=>a+((d.summary.products||{})[k]?.[1]||0),0);
-      let worstDrop=null;
-      withSales.forEach(k=>{
-        const pS=sumProd(prior,k),rS=sumProd(recent,k);
-        if(pS>=50){
-          const chg=(rS-pS)/pS*100;
-          if(chg<=-25 && (!worstDrop||chg<worstDrop.chg)) worstDrop={k,chg,pS,rS};
-        }
-      });
-      if(worstDrop) items.push({type:'warn',title:`${labels[worstDrop.k]||worstDrop.k} sales cooling off`,detail:`Sales fell about ${Math.abs(worstDrop.chg).toFixed(0)}% versus the prior stretch (${money(worstDrop.pS)} → ${money(worstDrop.rS)} AFN) — check stock levels or local demand.`});
-    }
-  }
-
-  /* --- Expense ratio across all history --- */
-  const allSales=h.reduce((a,d)=>a+(d.summary.totalSales||0),0);
-  const allExp=h.reduce((a,d)=>a+(d.expenses||0),0);
-  if(allSales>0){
-    const ratio=allExp/allSales*100;
-    if(ratio<=8) items.push({type:'good',title:'Expenses well under control',detail:`Recorded expenses are about ${ratio.toFixed(1)}% of total sales across all saved days.`});
-    else if(ratio>=15) items.push({type:'warn',title:'Expenses are cutting into profit',detail:`Recorded expenses are about ${ratio.toFixed(1)}% of total sales — review where that spending is going.`});
-  }
-
-  /* --- Loss-making days --- */
-  const lossDays=h.filter(d=>(d.summary.netProfit||0)<0);
-  if(lossDays.length) items.push({type:'warn',title:`${lossDays.length} day(s) closed at a net loss`,detail:`Open History and check: ${lossDays.slice(0,5).map(d=>d.date).join(', ')}${lossDays.length>5?', …':''}.`});
-  else if(h.length>=5) items.push({type:'good',title:'No loss-making days on record',detail:`Every one of your ${h.length} saved days closed with a positive net profit.`});
-
-  /* --- Best weekday (only if enough spread of data) --- */
-  if(h.length>=10){
-    const byDow=[[],[],[],[],[],[],[]];
-    h.forEach(d=>{const dow=new Date(d.date+'T00:00:00').getDay();byDow[dow].push(d.summary.totalSales||0)});
-    const dowNames=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-    const avgs=byDow.map((arr,i)=>arr.length>=2?{i,avg:arr.reduce((a,b)=>a+b,0)/arr.length,n:arr.length}:null).filter(Boolean);
-    if(avgs.length>=3){
-      const best=avgs.reduce((a,b)=>b.avg>a.avg?b:a);
-      const worst=avgs.reduce((a,b)=>b.avg<a.avg?b:a);
-      if(best.i!==worst.i) items.push({type:'good',title:`${dowNames[best.i]} is your best day`,detail:`Averaging ${money(best.avg)} AFN in sales, versus ${money(worst.avg)} AFN on ${dowNames[worst.i]} — plan stock and staffing around this.`});
-    }
-  }
-
-  return items;
-}
-
-/* ---------- Excel Import with column mapping ---------- */
-let importWb=null,importSheetRows=null,importHeaders=[];
-function loadXLSX(){
-  if(window.XLSX) return Promise.resolve();
-  return new Promise((resolve,reject)=>{
-    let tries=0;
-    const iv=setInterval(()=>{
-      if(window.XLSX){clearInterval(iv);resolve()}
-      else if(++tries>100){clearInterval(iv);reject(new Error('The Excel library did not load. Check your connection and try again.'))}
-    },100);
-  });
-}
-document.getElementById('excel').onchange=async e=>{
-  let f=e.target.files[0];if(!f)return;
-  try{
-    await loadXLSX();
-    let data=await f.arrayBuffer();importWb=XLSX.read(data,{type:'array',cellDates:true});
-    show('settings');
-    renderSheetPicker();
-  }catch(err){appAlert('Could not read the Excel file: '+err.message)}
-  e.target.value='';
-};
-function renderSheetPicker(){
-  let opts=importWb.SheetNames.map(n=>`<option value="${n}">${n}</option>`).join('');
-  document.getElementById('importArea').innerHTML=`<div class="section glass"><h2>Import: choose sheet</h2>
-  <select id="sheetPick">${opts}</select>
-  <button type="button" class="primary" onclick="loadSheetPreview()">Load Sheet</button></div>`;
-}
-function loadSheetPreview(){
-  let name=document.getElementById('sheetPick').value;
-  let sheet=importWb.Sheets[name];
-  let json=XLSX.utils.sheet_to_json(sheet,{header:1,defval:null,raw:false});
-  importHeaders=(json[0]||[]).map((h,i)=>h==null||h===''?('Column '+(i+1)):String(h));
-  importSheetRows=json.slice(1).filter(r=>r.some(c=>c!=null && c!==''));
-  let colOpts='<option value="">(not in my sheet)</option>'+importHeaders.map((h,i)=>`<option value="${i}">${h}</option>`).join('');
-  document.getElementById('importArea').innerHTML+=`
-  <div class="section glass"><h2>Match your columns</h2>
-  <p class="small">Pick which column in your sheet holds each value. Leave any as "(not in my sheet)" if you don't track it separately — totals will just skip that field.</p>
-  <div class="mapgrid">
-  <div><label>Date</label><select id="mapDate">${colOpts}</select></div>
-  <div><label>Total Sales (for the day)</label><select id="mapSales">${colOpts}</select></div>
-  <div><label>Total Profit (for the day)</label><select id="mapProfit">${colOpts}</select></div>
-  <div><label>Expenses</label><select id="mapExpenses">${colOpts}</select></div>
-  <div><label>Soap Sales</label><select id="mapSoapS">${colOpts}</select></div>
-  <div><label>Soap Profit</label><select id="mapSoapP">${colOpts}</select></div>
-  <div><label>Wasleen Sales</label><select id="mapWasS">${colOpts}</select></div>
-  <div><label>Wasleen Profit</label><select id="mapWasP">${colOpts}</select></div>
-  <div><label>Shampoo Sales</label><select id="mapShS">${colOpts}</select></div>
-  <div><label>Shampoo Profit</label><select id="mapShP">${colOpts}</select></div>
-  <div><label>Surf Sales</label><select id="mapSurfS">${colOpts}</select></div>
-  <div><label>Surf Profit</label><select id="mapSurfP">${colOpts}</select></div>
-  </div>
-  <div class="previewTbl"><table><tr>${importHeaders.map(h=>`<th>${h}</th>`).join('')}</tr>
-  ${importSheetRows.slice(0,5).map(r=>`<tr>${importHeaders.map((_,i)=>`<td>${r[i]??''}</td>`).join('')}</tr>`).join('')}
-  </table></div>
-  <p class="small">${importSheetRows.length} data rows detected.</p>
-  <button type="button" class="primary" onclick="confirmImport()">Import These Rows into History</button>
-  </div>`;
-}
-function parseDateCell(v){
-  if(v==null||v==='')return null;
-  if(v instanceof Date)return v.toISOString().slice(0,10);
-  let n=Number(v);
-  if(!isNaN(n) && n>20000 && n<80000){ // excel serial date
-    let d=XLSX.SSF.parse_date_code(n);if(d)return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;
-  }
-  let d2=new Date(v);
-  if(!isNaN(d2.getTime()))return d2.toISOString().slice(0,10);
-  return String(v);
-}
-function num(v){if(v==null||v==='')return 0;let n=Number(String(v).replace(/,/g,''));return isNaN(n)?0:n}
-function confirmImport(){
-  let m={date:document.getElementById('mapDate').value,sales:document.getElementById('mapSales').value,profit:document.getElementById('mapProfit').value,expenses:document.getElementById('mapExpenses').value,
-  soapS:document.getElementById('mapSoapS').value,soapP:document.getElementById('mapSoapP').value,wasS:document.getElementById('mapWasS').value,wasP:document.getElementById('mapWasP').value,
-  shS:document.getElementById('mapShS').value,shP:document.getElementById('mapShP').value,surfS:document.getElementById('mapSurfS').value,surfP:document.getElementById('mapSurfP').value};
-  if(m.date===''){appAlert('Please choose which column holds the Date — every imported day needs a date.');return}
-  let imported=0,skipped=0;
-  importSheetRows.forEach(r=>{
-    let date=parseDateCell(r[m.date]);
-    if(!date){skipped++;return}
-    let hasProduct=m.soapS!=='' || m.wasS!=='' || m.shS!=='' || m.surfS!=='';
-    let products={};
-    let sales=0,profit=0;
-    if(hasProduct){
-      if(m.soapS!=='')products.soap=[0,num(r[m.soapS]),num(r[m.soapP])];
-      if(m.wasS!=='')products.wasleen=[0,num(r[m.wasS]),num(r[m.wasP])];
-      if(m.shS!=='')products.shampoo10=[0,num(r[m.shS]),num(r[m.shP])];
-      if(m.surfS!=='')products.surf=[0,num(r[m.surfS]),num(r[m.surfP])];
-      sales=Object.values(products).reduce((a,x)=>a+x[1],0);
-      profit=Object.values(products).reduce((a,x)=>a+x[2],0);
-    } else if(m.sales!=='' || m.profit!==''){
-      sales=num(r[m.sales]);profit=m.profit!==''?num(r[m.profit]):sales;
-      products.other=[0,sales,profit];
-    } else { skipped++; return }
-    let expenses=m.expenses!==''?num(r[m.expenses]):0;
-    let netProfit=profit-expenses;
-    addHistoryEntry({date,summary:{products,totalSales:sales,grossProfit:profit,expenses,netProfit,count:1},rows:null,expenses,imported:true,closedAt:new Date().toISOString()});
-    imported++;
-  });
-  appAlert(`Imported ${imported} day(s) into History.${skipped?` Skipped ${skipped} row(s) without a usable date/value.`:''}\nYou can review them under History or Analytics. Your current open working day was not affected — keep entering today's sales as normal.`);
-  document.getElementById('importArea').innerHTML='';
-  renderHistory();
-}
-
-if(document.readyState==='complete'){ init(); } else { window.addEventListener('load',init); }
-if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});}
-</script></body></html>
-<style>
-/* FINAL WATER-TRANSPARENT OVERRIDE: no CSS blur, minimal gaps */
-:root{
-  --text:#173247;
-  --muted:#5e7180;
-  --water-edge:rgba(255,255,255,.78);
-}
-html,body{background:transparent!important}
-body{
-  min-height:100vh;
-  background-image:url('liquid-bg.jpg')!important;
-  background-size:cover!important;
-  background-position:center!important;
-  background-attachment:fixed!important;
-  background-repeat:no-repeat!important;
-  overflow-x:hidden;
-}
-body:before,body:after{display:none!important}
-.app{background:transparent!important;padding:8px;max-width:1500px}
-/* Clear water: transparent surfaces, crisp edges, no backdrop blur */
-.glass,.section.glass,.card.glass{
-  background:rgba(255,255,255,.10)!important;
-  border:1px solid rgba(255,255,255,.72)!important;
-  box-shadow:0 8px 24px rgba(20,50,70,.10),inset 0 1px 0 rgba(255,255,255,.88),inset 0 -1px 0 rgba(255,255,255,.20)!important;
-  backdrop-filter:none!important;
-  -webkit-backdrop-filter:none!important;
-}
-.glass:before,.glass:after,.section.glass:before,.section.glass:after,.card.glass:before,.card.glass:after{display:none!important}
-header.glass{background:rgba(255,255,255,.08)!important}
-nav{gap:5px;margin:8px 0}
-button,.filebtn,.prodTabBtn{
-  background:rgba(255,255,255,.10)!important;
-  border:1px solid rgba(255,255,255,.68)!important;
-  box-shadow:0 4px 12px rgba(20,50,70,.08),inset 0 1px rgba(255,255,255,.82)!important;
-  backdrop-filter:none!important;
-  -webkit-backdrop-filter:none!important;
-}
-button:hover,.filebtn:hover,.prodTabBtn:hover{background:rgba(255,255,255,.18)!important;transform:none!important}
-button.primary,.prodTabBtn.active{
-  background:rgba(10,132,255,.30)!important;
-  color:#064f7e!important;
-  border-color:rgba(255,255,255,.78)!important;
-  box-shadow:0 5px 15px rgba(10,132,255,.13),inset 0 1px rgba(255,255,255,.9)!important;
-}
-.prodTabs{gap:4px;margin-bottom:5px}
-.cards{gap:4px;margin-bottom:5px}
-.card{padding:7px}
-.section{margin:5px 0;padding:7px}
-.section h2{margin:0 0 5px}
-.grid2{gap:6px}
-.totals{gap:4px}
-.prodGrid{gap:0}
-table{border-spacing:1px 1px;width:auto}
-th,td{padding:2px 4px}
-th{background:rgba(255,255,255,.10)!important;border:1px solid rgba(255,255,255,.48)!important}
-td{background:rgba(255,255,255,.055)!important;border:1px solid rgba(255,255,255,.42)!important;box-shadow:inset 0 1px rgba(255,255,255,.20)!important}
-input,select{
-  background:rgba(255,255,255,.09)!important;
-  border:1px solid rgba(255,255,255,.64)!important;
-  box-shadow:inset 0 1px rgba(255,255,255,.72)!important;
-  backdrop-filter:none!important;
-  -webkit-backdrop-filter:none!important;
-}
-input:focus,select:focus{box-shadow:0 0 0 2px rgba(10,132,255,.12),inset 0 1px rgba(255,255,255,.88)!important}
-.grpHeader td{background:rgba(255,255,255,.08)!important;padding:3px 7px}
-.grpHeader.divider td{border-top:1px solid rgba(255,255,255,.48)!important}
-.modalOverlay{background:rgba(20,45,60,.12)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
-.modalBox{background:rgba(255,255,255,.12)!important}
-.insightCard{background:rgba(255,255,255,.08)!important}
-.metric{background:rgba(255,255,255,.08)!important}
-.weekDay{background:rgba(255,255,255,.08)!important}
-/* Keep rows compact so cells sit close together */
-.prodTable tr{height:0}
-.prodTable td,.prodTable th{line-height:1.15}
-@media(max-width:900px){.app{padding:5px}.section{padding:6px}.cards{gap:3px}.grid2{gap:5px}}
-</style>
+function updateTimer(){const el=document.getElementById("timer");if(el)el.textContent=`${String(Math.floor(remaining/60)).padStart(2,"0")}:${String(remaining%60).padStart(2,"0")}`}
+document.getElementById("close").onclick=()=>document.getElementById("modal").classList.remove("show");
+document.getElementById("form").onsubmit=submitForm;
+render();
+</script>
+</body>
+</html>
