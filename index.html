@@ -4,18 +4,76 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f5f7fb">
+<meta name="description" content="Offline-first personal university study organizer.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Study System">
 <title>University Study System</title>
 <link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
 <style>
-:root{--bg:#f5f7fb;--card:rgba(255,255,255,.82);--text:#172033;--muted:#68738a;--line:#dfe5ef;--accent:#3b6ff5;--danger:#d84c4c;--ok:#2e9b68}
-*{box-sizing:border-box}body{margin:0;background:linear-gradient(145deg,#f8fbff,#edf2f8);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,sans-serif}
-button,input,select,textarea{font:inherit}button{cursor:pointer;border:0}.app{max-width:1050px;margin:auto;padding:18px}.top{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:16px}.title h1{margin:0;font-size:25px}.title p{margin:4px 0;color:var(--muted);font-size:13px}.btn{background:var(--accent);color:white;padding:11px 15px;border-radius:13px;font-weight:650}.btn.secondary{background:white;color:var(--text);border:1px solid var(--line)}.nav{display:flex;gap:7px;overflow:auto;margin-bottom:16px}.nav button{padding:10px 13px;border-radius:12px;background:white;border:1px solid var(--line);white-space:nowrap;color:var(--muted)}.nav button.active{background:#e9efff;color:var(--accent);border-color:#cbd8ff}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}.stat{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:15px}.stat b{font-size:23px}.stat span{display:block;color:var(--muted);font-size:12px;margin-top:3px}.panel{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:17px;margin-bottom:14px}.panel h2{font-size:17px;margin:0 0 12px}.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.list{display:grid;gap:8px}.item{background:white;border:1px solid var(--line);border-radius:15px;padding:12px;display:flex;justify-content:space-between;gap:10px;align-items:center}.item small{color:var(--muted)}.progress{height:8px;background:#e8ecf3;border-radius:99px;overflow:hidden;margin-top:8px}.progress i{display:block;height:100%;background:var(--accent);border-radius:99px}.badge{font-size:11px;padding:5px 8px;border-radius:999px;background:#eef1f6;color:var(--muted)}.ok{background:#e5f6ed;color:var(--ok)}.modal{position:fixed;inset:0;background:rgba(20,28,44,.35);display:none;align-items:center;justify-content:center;padding:15px;z-index:5}.modal.show{display:flex}.box{background:white;border-radius:22px;padding:19px;width:min(560px,100%);max-height:90vh;overflow:auto}.field{margin:10px 0}.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}.field input,.field select,.field textarea{width:100%;padding:11px;border:1px solid var(--line);border-radius:12px;background:#fafbfe}.field textarea{min-height:110px;resize:vertical}.empty{color:var(--muted);padding:18px;text-align:center}.file{display:flex;align-items:center;gap:10px}.file a{color:var(--accent);text-decoration:none}.hidden{display:none}@media(max-width:700px){.grid{grid-template-columns:repeat(2,1fr)}.app{padding:12px}.item{align-items:flex-start}.top{align-items:flex-start}} 
+:root{--bg:#f5f7fb;--card:rgba(255,255,255,.82);--text:#172033;--muted:#68738a;--line:#dfe5ef;--accent:#3b6ff5;--danger:#d84c4c;--ok:#2e9b68;--warn:#c8862a}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(145deg,#f8fbff,#edf2f8);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,sans-serif}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer;border:0}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.app{max-width:1050px;margin:auto;padding:18px;padding-bottom:70px}
+.top{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:16px}
+.title h1{margin:0;font-size:25px}
+.title p{margin:4px 0;color:var(--muted);font-size:13px}
+.btn{background:var(--accent);color:white;padding:11px 15px;border-radius:13px;font-weight:650}
+.btn.secondary{background:white;color:var(--text);border:1px solid var(--line)}
+.btn.danger{background:var(--danger);color:white}
+.btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--line);padding:7px 10px;font-size:13px;font-weight:600}
+.btn:disabled{opacity:.5;cursor:default}
+.nav{display:flex;gap:7px;overflow:auto;margin-bottom:16px}
+.nav button{padding:10px 13px;border-radius:12px;background:white;border:1px solid var(--line);white-space:nowrap;color:var(--muted)}
+.nav button.active{background:#e9efff;color:var(--accent);border-color:#cbd8ff}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:15px}
+.stat b{font-size:23px}
+.stat span{display:block;color:var(--muted);font-size:12px;margin-top:3px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:17px;margin-bottom:14px}
+.panel h2{font-size:17px;margin:0 0 12px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.list{display:grid;gap:8px}
+.item{background:white;border:1px solid var(--line);border-radius:15px;padding:12px;display:flex;justify-content:space-between;gap:10px;align-items:center}
+.item small{color:var(--muted)}
+.progress{height:8px;background:#e8ecf3;border-radius:99px;overflow:hidden;margin-top:8px}
+.progress i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.badge{font-size:11px;padding:5px 8px;border-radius:999px;background:#eef1f6;color:var(--muted);white-space:nowrap}
+.ok{background:#e5f6ed;color:var(--ok)}
+.warn{background:#fbf0de;color:var(--warn)}
+.modal{position:fixed;inset:0;background:rgba(20,28,44,.35);display:none;align-items:center;justify-content:center;padding:15px;z-index:5}
+.modal.show{display:flex}
+.box{background:white;border-radius:22px;padding:19px;width:min(560px,100%);max-height:90vh;overflow:auto}
+.field{margin:10px 0}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;padding:11px;border:1px solid var(--line);border-radius:12px;background:#fafbfe}
+.field textarea{min-height:110px;resize:vertical}
+.empty{color:var(--muted);padding:18px;text-align:center;line-height:1.5}
+.file{display:flex;align-items:center;gap:8px;background:#fafbfe;border:1px solid var(--line);border-radius:11px;padding:7px 10px;font-size:13px}
+.file button{background:transparent;color:var(--danger);font-size:12px;font-weight:700}
+.hidden{display:none}
+.crumb{background:transparent;color:var(--accent);font-weight:650;padding:0;margin-bottom:10px;display:inline-flex;align-items:center;gap:4px}
+.select-inline{padding:7px 9px;border:1px solid var(--line);border-radius:10px;background:#fafbfe;font-size:13px}
+.chapter-block{background:white;border:1px solid var(--line);border-radius:15px;padding:12px}
+.chapter-block+.chapter-block{margin-top:8px}
+.lecture-row{background:#fafbfe;border:1px solid var(--line);border-radius:12px;padding:10px;margin-top:8px}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#172033;color:white;padding:11px 18px;border-radius:99px;font-size:13px;z-index:20;opacity:0;pointer-events:none;transition:opacity .25s, bottom .25s}
+.toast.show{opacity:1;bottom:30px}
+.iconbtn{background:transparent;color:var(--muted);padding:6px;border-radius:9px}
+.iconbtn:hover{background:#eef1f6}
+@media(max-width:700px){.grid{grid-template-columns:repeat(2,1fr)}.app{padding:12px}.item{align-items:flex-start}.top{align-items:flex-start}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
 <div class="app">
   <header class="top">
-    <div class="title"><h1>🎓 University Study System</h1><p>Your offline lecture, chapter and study-rhythm manager</p></div>
+    <div class="title"><h1>🎓 University Study System</h1><p id="semLabel">Your offline lecture, chapter and study-rhythm manager</p></div>
     <button class="btn" id="addBtn">＋ Add</button>
   </header>
   <nav class="nav" id="nav">
@@ -24,26 +82,86 @@ button,input,select,textarea{font:inherit}button{cursor:pointer;border:0}.app{ma
     <button data-page="revision">🧠 Revision</button>
     <button data-page="study">⏱ Study</button>
     <button data-page="progress">📊 Progress</button>
+    <button data-page="settings">⚙️ Settings</button>
   </nav>
   <main id="main"></main>
 </div>
 
 <div class="modal" id="modal">
  <div class="box">
-  <div class="row" style="justify-content:space-between"><h2 id="modalTitle">Add</h2><button class="btn secondary" id="close">Close</button></div>
+  <div class="row" style="justify-content:space-between"><h2 id="modalTitle">Add</h2><button class="btn secondary" id="close" type="button">Close</button></div>
   <form id="form"></form>
  </div>
 </div>
 
+<div class="toast" id="toast"></div>
+
 <script>
+"use strict";
 const KEY="university-study-system-v1";
-let db=JSON.parse(localStorage.getItem(KEY)||'{"semesters":[],"subjects":[],"chapters":[],"lectures":[],"sessions":[],"revisions":[],"settings":{"semester":"Current Semester"}}');
+const FILEDB="study-files-db", FILESTORE="files";
+const REV_SCHEDULE=[1,3,7,16,35]; // days after completion — spaced revision
+
+let db=JSON.parse(localStorage.getItem(KEY)||JSON.stringify({
+  semesters:[], subjects:[], chapters:[], lectures:[], sessions:[], revisions:[],
+  settings:{semester:"Current Semester"}
+}));
+// migrate older saves that may miss newer fields
+db.revisions=db.revisions||[]; db.settings=db.settings||{semester:"Current Semester"};
+
 const save=()=>localStorage.setItem(KEY,JSON.stringify(db));
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 const today=()=>new Date().toISOString().slice(0,10);
-const statusBadge=s=>`<span class="badge ${s==="Completed"?"ok":""}">${esc(s)}</span>`;
-function render(page="home"){
+const addDays=(dateStr,n)=>{const d=new Date(dateStr+"T00:00:00");d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);};
+const fmtBytes=n=>{if(!n&&n!==0)return "";const u=["B","KB","MB","GB"];let i=0;while(n>=1024&&i<u.length-1){n/=1024;i++;}return `${n.toFixed(n<10&&i>0?1:0)} ${u[i]}`;};
+const statusBadge=s=>`<span class="badge ${s==="Completed"?"ok":s==="Studying"?"warn":""}">${esc(s)}</span>`;
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove("show"),2200);}
+
+/* ---------- IndexedDB file storage ---------- */
+let idbPromise=null;
+function openFilesDB(){
+  if(idbPromise)return idbPromise;
+  idbPromise=new Promise((res,rej)=>{
+    if(!("indexedDB" in window)){rej(new Error("no-indexeddb"));return;}
+    const req=indexedDB.open(FILEDB,1);
+    req.onupgradeneeded=()=>{req.result.createObjectStore(FILESTORE);};
+    req.onsuccess=()=>res(req.result);
+    req.onerror=()=>rej(req.error);
+  });
+  return idbPromise;
+}
+async function idbPut(id,blob){
+  try{const d=await openFilesDB();return new Promise((res,rej)=>{
+    const tx=d.transaction(FILESTORE,"readwrite");tx.objectStore(FILESTORE).put(blob,id);
+    tx.oncomplete=()=>res(true);tx.onerror=()=>rej(tx.error);
+  });}catch(e){return false;}
+}
+async function idbGet(id){
+  try{const d=await openFilesDB();return new Promise((res,rej)=>{
+    const tx=d.transaction(FILESTORE,"readonly");const r=tx.objectStore(FILESTORE).get(id);
+    r.onsuccess=()=>res(r.result||null);r.onerror=()=>rej(r.error);
+  });}catch(e){return null;}
+}
+async function idbDelete(id){
+  try{const d=await openFilesDB();return new Promise((res)=>{
+    const tx=d.transaction(FILESTORE,"readwrite");tx.objectStore(FILESTORE).delete(id);
+    tx.oncomplete=()=>res(true);tx.onerror=()=>res(false);
+  });}catch(e){return false;}
+}
+async function idbClear(){
+  try{const d=await openFilesDB();return new Promise((res)=>{
+    const tx=d.transaction(FILESTORE,"readwrite");tx.objectStore(FILESTORE).clear();
+    tx.oncomplete=()=>res(true);tx.onerror=()=>res(false);
+  });}catch(e){return false;}
+}
+
+/* ---------- routing state ---------- */
+let currentPage="home", currentParam=null, timer=null, remaining=1500, timerTotal=1500;
+
+function go(page,param){currentPage=page;currentParam=param||null;render(page,currentParam);window.scrollTo({top:0,behavior:"instant"});}
+
+function render(page="home",param=null){
  document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===page));
  const total=db.chapters.length, done=db.chapters.filter(x=>x.status==="Completed").length;
  const sessionsToday=db.sessions.filter(x=>x.date===today()).length;
@@ -51,12 +169,19 @@ function render(page="home"){
  let html="";
  if(page==="home") html=home(total,done,sessionsToday,due);
  if(page==="courses") html=courses();
+ if(page==="subject") html=subjectPage(param);
  if(page==="revision") html=revision();
  if(page==="study") html=study();
  if(page==="progress") html=progress();
+ if(page==="settings") html=settingsPage();
  document.getElementById("main").innerHTML=html;
+ document.getElementById("semLabel").textContent=db.settings.semester||"Current Semester";
  bind();
 }
+
+function subjectName(id){return db.subjects.find(x=>x.id===id)?.name||"No subject";}
+function chapterName(id){return db.chapters.find(x=>x.id===id)?.name||"Chapter";}
+
 function home(total,done,s,due){
  const pct=total?Math.round(done/total*100):0;
  const next=db.chapters.find(x=>x.status!=="Completed");
@@ -68,64 +193,329 @@ function home(total,done,s,due){
  <section class="panel"><h2>Semester progress</h2><b>${pct}%</b><div class="progress"><i style="width:${pct}%"></i></div></section>
  <section class="panel"><h2>Quick actions</h2><div class="row"><button class="btn" data-add="subject">＋ Subject</button><button class="btn secondary" data-add="chapter">＋ Chapter</button><button class="btn secondary" data-add="lecture">＋ Lecture + Files</button></div></section>`;
 }
-function subjectName(id){return db.subjects.find(x=>x.id===id)?.name||"No subject";}
+
 function courses(){
  if(!db.subjects.length)return `<section class="panel"><div class="empty">No subjects yet.<br><br><button class="btn" data-add="subject">＋ Add first subject</button></div></section>`;
  return `<section class="panel"><h2>Courses</h2><div class="list">${db.subjects.map(s=>{
  const cs=db.chapters.filter(c=>c.subjectId===s.id); const done=cs.filter(c=>c.status==="Completed").length; const pct=cs.length?Math.round(done/cs.length*100):0;
  return `<div class="item"><div style="flex:1"><b>${esc(s.name)}</b><br><small>${cs.length} chapters · ${pct}% complete</small><div class="progress"><i style="width:${pct}%"></i></div></div><button class="btn secondary" data-open-sub="${s.id}">Open</button></div>`}).join("")}</div></section>`;
 }
+
+function subjectPage(id){
+ const subj=db.subjects.find(x=>x.id===id);
+ if(!subj)return `<section class="panel"><div class="empty">Subject not found.</div></section><button class="btn secondary" data-page="courses">Back to Courses</button>`;
+ const chs=db.chapters.filter(c=>c.subjectId===id);
+ return `<button class="crumb" data-page="courses">← Courses</button>
+ <section class="panel"><h2>${esc(subj.name)}
+   <span class="row" style="gap:6px">
+     <button class="iconbtn" data-rename-sub="${id}" title="Rename subject">✏️</button>
+     <button class="iconbtn" data-del-sub="${id}" title="Delete subject">🗑️</button>
+   </span></h2>
+   <div class="row"><button class="btn" data-add="chapter" data-preset-subject="${id}">＋ Add chapter</button></div>
+ </section>
+ <section class="panel"><h2>Chapters</h2>
+ ${chs.length?`<div class="list">${chs.map(c=>chapterBlock(c)).join("")}</div>`:`<div class="empty">No chapters in this subject yet.</div>`}
+ </section>`;
+}
+
+function chapterBlock(c){
+ const lects=db.lectures.filter(l=>l.chapterId===c.id);
+ return `<div class="chapter-block">
+  <div class="row" style="justify-content:space-between">
+   <div><b>${esc(c.name)}</b> ${statusBadge(c.status)}</div>
+   <div class="row" style="gap:6px">
+    <select class="select-inline" data-chapter-status="${c.id}">
+     <option value="Not Started" ${c.status==="Not Started"?"selected":""}>Not Started</option>
+     <option value="Studying" ${c.status==="Studying"?"selected":""}>Studying</option>
+     <option value="Completed" ${c.status==="Completed"?"selected":""}>Completed</option>
+    </select>
+    <button class="iconbtn" data-add="lecture" data-preset-subject="${c.subjectId}" data-preset-chapter="${c.id}" title="Add lecture/material">📎</button>
+    <button class="iconbtn" data-del-chapter="${c.id}" title="Delete chapter">🗑️</button>
+   </div>
+  </div>
+  ${lects.length?lects.map(l=>lectureRow(l)).join(""):`<div class="empty" style="padding:8px 0">No lectures added.</div>`}
+ </div>`;
+}
+
+function lectureRow(l){
+ return `<div class="lecture-row">
+  <div class="row" style="justify-content:space-between">
+   <b>${esc(l.name)}</b>
+   <button class="iconbtn" data-del-lecture="${l.id}" title="Delete">🗑️</button>
+  </div>
+  ${l.notes?`<div style="font-size:13px;color:var(--muted);margin-top:4px;white-space:pre-wrap">${esc(l.notes)}</div>`:""}
+  ${(l.files&&l.files.length)?`<div class="row" style="margin-top:8px">${l.files.map(f=>`<span class="file">📄 ${esc(f.name)} <small style="color:var(--muted)">${fmtBytes(f.size)}</small> ${f.stored?`<button data-download-file="${f.id}" data-filename="${esc(f.name)}">Open</button>`:`<small style="color:var(--muted)">(not stored)</small>`}</span>`).join("")}</div>`:""}
+  <small style="color:var(--muted)">Added ${esc(l.date)}</small>
+ </div>`;
+}
+
 function revision(){
  const rows=db.revisions.filter(r=>!r.done).sort((a,b)=>a.date.localeCompare(b.date));
- return `<section class="panel"><h2>🧠 Revision queue</h2>${rows.length?`<div class="list">${rows.map(r=>`<div class="item"><div><b>${esc(chapterName(r.chapterId))}</b><br><small>Due ${esc(r.date)}</small></div><button class="btn" data-done-rev="${r.id}">Done</button></div>`).join("")}`:`<div class="empty">No revisions due. When you finish chapters, revision dates will be created.</div>`}</section>`;
+ return `<section class="panel"><h2>🧠 Revision queue<button class="btn secondary" data-add="revision" style="font-size:13px;padding:8px 11px">＋ Add</button></h2>${rows.length?`<div class="list">${rows.map(r=>{const overdue=r.date<=today();return `<div class="item"><div><b>${esc(chapterName(r.chapterId))}</b><br><small>${esc(subjectName(db.chapters.find(c=>c.id===r.chapterId)?.subjectId))} · ${overdue?"Due":"Scheduled"} ${esc(r.date)}</small></div><div class="row" style="gap:6px"><button class="btn ${overdue?"":"secondary"}" data-done-rev="${r.id}">Done</button><button class="iconbtn" data-del-rev="${r.id}" title="Remove">🗑️</button></div></div>`}).join("")}</div>`:`<div class="empty">No revisions due. Mark a chapter Completed in Courses to auto-schedule a revision plan (1, 3, 7, 16 and 35 days later).</div>`}</section>`;
 }
-function chapterName(id){return db.chapters.find(x=>x.id===id)?.name||"Chapter";}
+
 function study(){
- return `<section class="panel"><h2>⏱ Study session</h2><div style="font-size:46px;font-weight:750;text-align:center;margin:20px" id="timer">25:00</div><div class="row" style="justify-content:center"><button class="btn" id="startTimer">Start 25 min</button><button class="btn secondary" id="resetTimer">Reset</button></div><p style="color:var(--muted);text-align:center">When you finish, log the session to keep your rhythm.</p><button class="btn" data-log-session style="width:100%">＋ Log study session</button></section>
- <section class="panel"><h2>Recent sessions</h2>${db.sessions.length?`<div class="list">${db.sessions.slice().reverse().slice(0,10).map(x=>`<div class="item"><div><b>${esc(x.minutes)} minutes</b><br><small>${esc(x.date)} · ${esc(x.note||"Study session")}</small></div></div>`).join("")}`:`<div class="empty">No sessions yet.</div>`}</section>`;
+ return `<section class="panel"><h2>⏱ Study session</h2>
+ <div style="font-size:46px;font-weight:750;text-align:center;margin:20px" id="timer">${fmtTime(remaining)}</div>
+ <div class="row" style="justify-content:center">
+  <select class="select-inline" id="timerLen" ${timer?"disabled":""}>
+   <option value="15" ${timerTotal===900?"selected":""}>15 min</option>
+   <option value="25" ${timerTotal===1500?"selected":""}>25 min</option>
+   <option value="45" ${timerTotal===2700?"selected":""}>45 min</option>
+   <option value="60" ${timerTotal===3600?"selected":""}>60 min</option>
+  </select>
+  <button class="btn" id="startTimer" ${timer?"disabled":""}>${timer?"Running…":"Start"}</button>
+  <button class="btn secondary" id="resetTimer">Reset</button>
+ </div>
+ <p style="color:var(--muted);text-align:center">When you finish, log the session to keep your rhythm.</p>
+ <button class="btn" data-log-session style="width:100%">＋ Log study session</button></section>
+ <section class="panel"><h2>Recent sessions</h2>${db.sessions.length?`<div class="list">${db.sessions.slice().reverse().slice(0,10).map(x=>`<div class="item"><div><b>${esc(x.minutes)} minutes</b><br><small>${esc(x.date)} · ${esc(x.note||"Study session")}</small></div><button class="iconbtn" data-del-session="${x.id}" title="Delete">🗑️</button></div>`).join("")}</div>`:`<div class="empty">No sessions yet.</div>`}</section>`;
 }
+function fmtTime(sec){return `${String(Math.floor(sec/60)).padStart(2,"0")}:${String(sec%60).padStart(2,"0")}`;}
+
 function progress(){
  const hours=Math.round(db.sessions.reduce((a,x)=>a+(Number(x.minutes)||0),0)/60*10)/10;
  return `<section class="panel"><h2>📊 Your progress</h2><div class="grid"><div class="stat"><b>${hours}h</b><span>Total study</span></div><div class="stat"><b>${db.sessions.length}</b><span>Sessions</span></div><div class="stat"><b>${db.lectures.length}</b><span>Lectures</span></div><div class="stat"><b>${db.chapters.filter(x=>x.status==="Completed").length}</b><span>Finished</span></div></div></section>
  <section class="panel"><h2>Subject progress</h2><div class="list">${db.subjects.map(s=>{let c=db.chapters.filter(x=>x.subjectId===s.id),d=c.filter(x=>x.status==="Completed").length,p=c.length?Math.round(d/c.length*100):0;return `<div><b>${esc(s.name)}</b><small style="float:right">${p}%</small><div class="progress"><i style="width:${p}%"></i></div></div>`}).join("")||'<div class="empty">Add subjects to see progress.</div>'}</div></section>`;
 }
-function openModal(type){
- const title={subject:"Add Subject",chapter:"Add Chapter",lecture:"Add Lecture / Material",session:"Log Study Session"}[type];
+
+function settingsPage(){
+ return `<section class="panel"><h2>Semester</h2>
+  <div class="field"><label>Semester name</label><div class="row"><input id="semInput" value="${esc(db.settings.semester||"")}" placeholder="e.g. Fall 2026"><button class="btn secondary" id="saveSem">Save</button></div></div>
+ </section>
+ <section class="panel"><h2>App</h2>
+  <div class="row"><button class="btn secondary" id="installBtn" ${window.__deferredInstall?"":"disabled"}>⬇ Install app</button></div>
+  <p style="color:var(--muted);font-size:13px;margin-top:8px">Installs this as a standalone app icon on your device and lets it work fully offline. If the button is disabled, your browser already considers it installed, or use your browser's "Add to Home Screen" / "Install app" menu option.</p>
+ </section>
+ <section class="panel"><h2>Backup &amp; restore</h2>
+  <p style="color:var(--muted);font-size:13px">Exports all subjects, chapters, lectures, sessions, revisions and attached files into one JSON file you can keep safe or move to another device.</p>
+  <div class="row"><button class="btn" id="exportBtn">⬇ Export backup</button>
+   <label class="btn secondary" style="margin:0">⬆ Import backup<input type="file" id="importInput" accept="application/json" class="hidden"></label>
+  </div>
+ </section>
+ <section class="panel"><h2>Danger zone</h2>
+  <div class="row"><button class="btn danger" id="clearBtn">Erase all data</button></div>
+  <p style="color:var(--muted);font-size:13px;margin-top:8px">Deletes every subject, chapter, lecture, file, session and revision on this device. This cannot be undone.</p>
+ </section>`;
+}
+
+/* ---------- modal / forms ---------- */
+function openModal(type,preset){
+ preset=preset||{};
+ const title={subject:"Add Subject",chapter:"Add Chapter",lecture:"Add Lecture / Material",session:"Log Study Session",revision:"Add Revision"}[type];
  let body="";
  if(type==="subject")body=`<div class="field"><label>Subject name</label><input name="name" required placeholder="Algorithms"></div>`;
- if(type==="chapter")body=`<div class="field"><label>Subject</label><select name="subjectId" required>${db.subjects.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join("")}</select></div><div class="field"><label>Chapter name</label><input name="name" required placeholder="Dynamic Programming"></div>`;
- if(type==="lecture")body=`<div class="field"><label>Subject</label><select name="subjectId" required>${db.subjects.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join("")}</select></div><div class="field"><label>Chapter</label><select name="chapterId" required>${db.chapters.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("")}</select></div><div class="field"><label>Lecture / material title</label><input name="name" required placeholder="Lecture 4 — Merge Sort"></div><div class="field"><label>Your notes</label><textarea name="notes" placeholder="Important points..."></textarea></div><div class="field"><label>Files — PDF, Office, images, audio, video, ZIP, text, etc.</label><input type="file" name="files" multiple></div>`;
+ if(type==="chapter")body=`<div class="field"><label>Subject</label><select name="subjectId" required>${db.subjects.map(s=>`<option value="${s.id}" ${preset.subjectId===s.id?"selected":""}>${esc(s.name)}</option>`).join("")}</select></div><div class="field"><label>Chapter name</label><input name="name" required placeholder="Dynamic Programming"></div>`;
+ if(type==="lecture")body=`<div class="field"><label>Subject</label><select name="subjectId" id="lecSubj" required>${db.subjects.map(s=>`<option value="${s.id}" ${preset.subjectId===s.id?"selected":""}>${esc(s.name)}</option>`).join("")}</select></div><div class="field"><label>Chapter</label><select name="chapterId" id="lecChap" required></select></div><div class="field"><label>Lecture / material title</label><input name="name" required placeholder="Lecture 4 — Merge Sort"></div><div class="field"><label>Your notes</label><textarea name="notes" placeholder="Important points..."></textarea></div><div class="field"><label>Files — PDF, Office, images, audio, video, ZIP, text, etc.</label><input type="file" name="files" multiple></div>`;
  if(type==="session")body=`<div class="field"><label>Minutes studied</label><input type="number" name="minutes" min="1" required value="25"></div><div class="field"><label>What did you study?</label><input name="note" placeholder="Algorithms — Quick Sort"></div>`;
+ if(type==="revision")body=`<div class="field"><label>Chapter</label><select name="chapterId" required>${db.chapters.map(c=>`<option value="${c.id}">${esc(subjectName(c.subjectId))} — ${esc(c.name)}</option>`).join("")}</select></div><div class="field"><label>Revise on</label><input type="date" name="date" required value="${today()}"></div>`;
  document.getElementById("modalTitle").textContent=title; document.getElementById("form").innerHTML=body+`<div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" type="submit">Save</button></div>`;
  document.getElementById("modal").classList.add("show");
  document.getElementById("form").dataset.type=type;
+ if(type==="lecture"){
+  const subjSel=document.getElementById("lecSubj"), chapSel=document.getElementById("lecChap");
+  const fillChapters=()=>{const chs=db.chapters.filter(c=>c.subjectId===subjSel.value);chapSel.innerHTML=chs.map(c=>`<option value="${c.id}" ${preset.chapterId===c.id?"selected":""}>${esc(c.name)}</option>`).join("")||"<option value=''>No chapters yet</option>";};
+  subjSel.onchange=fillChapters; fillChapters();
+ }
 }
+
 async function submitForm(e){
  e.preventDefault(); const f=new FormData(e.target),type=e.target.dataset.type;
- if(type==="subject")db.subjects.push({id:uid(),name:f.get("name")});
- if(type==="chapter"){db.chapters.push({id:uid(),subjectId:f.get("subjectId"),name:f.get("name"),status:"Not Started"});}
+ if(type==="subject"){if(!f.get("name").trim())return; db.subjects.push({id:uid(),name:f.get("name").trim()});}
+ if(type==="chapter"){if(!f.get("subjectId"))return toast("Add a subject first."); db.chapters.push({id:uid(),subjectId:f.get("subjectId"),name:f.get("name").trim(),status:"Not Started"});}
  if(type==="session")db.sessions.push({id:uid(),date:today(),minutes:Number(f.get("minutes")),note:f.get("note")});
+ if(type==="revision")db.revisions.push({id:uid(),chapterId:f.get("chapterId"),date:f.get("date"),done:false,manual:true});
  if(type==="lecture"){
-   const files=[...e.target.querySelector('[name=files]').files].map(x=>({name:x.name,type:x.type,size:x.size}));
+   if(!f.get("chapterId"))return toast("This subject has no chapters yet.");
+   const fileInputs=[...e.target.querySelector('[name=files]').files];
+   const files=[];
+   for(const x of fileInputs){
+     const fid=uid();
+     const stored=await idbPut(fid,x);
+     files.push({id:fid,name:x.name,type:x.type,size:x.size,stored:!!stored});
+   }
    db.lectures.push({id:uid(),subjectId:f.get("subjectId"),chapterId:f.get("chapterId"),name:f.get("name"),notes:f.get("notes"),files,date:today()});
  }
- save(); document.getElementById("modal").classList.remove("show"); render(currentPage);
+ save(); document.getElementById("modal").classList.remove("show"); render(currentPage,currentParam);
 }
-let currentPage="home",timer=null,remaining=1500;
+
+/* ---------- revision scheduling ---------- */
+function scheduleRevisions(chapterId){
+ const already=db.revisions.some(r=>r.chapterId===chapterId&&!r.manual);
+ if(already)return;
+ const base=today();
+ REV_SCHEDULE.forEach(d=>db.revisions.push({id:uid(),chapterId,date:addDays(base,d),done:false}));
+}
+
+/* ---------- backup / restore ---------- */
+async function exportBackup(){
+ const fileBlobs={};
+ for(const l of db.lectures){
+   for(const f of (l.files||[])){
+     if(f.stored){
+       const b=await idbGet(f.id);
+       if(b){
+         const b64=await blobToBase64(b);
+         fileBlobs[f.id]=b64;
+       }
+     }
+   }
+ }
+ const payload={version:1,exportedAt:new Date().toISOString(),db,files:fileBlobs};
+ const blob=new Blob([JSON.stringify(payload)],{type:"application/json"});
+ const a=document.createElement("a");
+ a.href=URL.createObjectURL(blob);
+ a.download=`study-system-backup-${today()}.json`;
+ document.body.appendChild(a); a.click(); a.remove();
+ toast("Backup exported.");
+}
+function blobToBase64(blob){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(blob);});}
+function base64ToBlob(dataUrl,type){const parts=dataUrl.split(",");const bin=atob(parts[1]);const arr=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);return new Blob([arr],{type:type||"application/octet-stream"});}
+
+async function importBackup(file){
+ try{
+  const text=await file.text();
+  const payload=JSON.parse(text);
+  if(!payload.db)throw new Error("bad file");
+  if(!confirm("Importing will replace all current data on this device with the backup's data. Continue?"))return;
+  await idbClear();
+  for(const [fid,dataUrl] of Object.entries(payload.files||{})){
+   const type=(dataUrl.match(/^data:(.*?);base64/)||[])[1];
+   await idbPut(fid,base64ToBlob(dataUrl,type));
+  }
+  db=payload.db;
+  db.revisions=db.revisions||[]; db.settings=db.settings||{semester:"Current Semester"};
+  save();
+  toast("Backup restored.");
+  go("home");
+ }catch(err){
+  toast("Could not read that backup file.");
+ }
+}
+
+/* ---------- event binding ---------- */
 function bind(){
- document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>{currentPage=b.dataset.page;render(currentPage)});
+ document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>go(b.dataset.page));
  document.getElementById("addBtn").onclick=()=>openModal("subject");
- document.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>openModal(b.dataset.add));
- document.querySelectorAll("[data-done-rev]").forEach(b=>b.onclick=()=>{let r=db.revisions.find(x=>x.id===b.dataset.doneRev);if(r)r.done=true;save();render(currentPage)});
- document.querySelectorAll("[data-study-chapter]").forEach(b=>b.onclick=()=>{let c=db.chapters.find(x=>x.id===b.dataset.studyChapter);if(c)c.status="Studying";save();currentPage="study";render("study")});
+ document.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>openModal(b.dataset.add,{subjectId:b.dataset.presetSubject,chapterId:b.dataset.presetChapter}));
+ document.querySelectorAll("[data-page]").forEach(b=>{ if(!b.closest(".nav")) b.onclick=()=>go(b.dataset.page); });
+ document.querySelectorAll("[data-open-sub]").forEach(b=>b.onclick=()=>go("subject",b.dataset.openSub));
+
+ document.querySelectorAll("[data-done-rev]").forEach(b=>b.onclick=()=>{let r=db.revisions.find(x=>x.id===b.dataset.doneRev);if(r)r.done=true;save();render(currentPage,currentParam);});
+ document.querySelectorAll("[data-del-rev]").forEach(b=>b.onclick=()=>{db.revisions=db.revisions.filter(x=>x.id!==b.dataset.delRev);save();render(currentPage,currentParam);});
+
+ document.querySelectorAll("[data-study-chapter]").forEach(b=>b.onclick=()=>{let c=db.chapters.find(x=>x.id===b.dataset.studyChapter);if(c&&c.status==="Not Started")c.status="Studying";save();go("study");});
+
+ document.querySelectorAll("[data-chapter-status]").forEach(sel=>sel.onchange=()=>{
+   const c=db.chapters.find(x=>x.id===sel.dataset.chapterStatus);
+   if(!c)return;
+   const was=c.status; c.status=sel.value;
+   if(sel.value==="Completed"&&was!=="Completed"){scheduleRevisions(c.id);toast("Revision plan scheduled.");}
+   save(); render(currentPage,currentParam);
+ });
+
+ document.querySelectorAll("[data-del-chapter]").forEach(b=>b.onclick=()=>{
+   if(!confirm("Delete this chapter and its lectures and revisions?"))return;
+   const cid=b.dataset.delChapter;
+   const lects=db.lectures.filter(l=>l.chapterId===cid);
+   lects.forEach(l=>(l.files||[]).forEach(f=>f.stored&&idbDelete(f.id)));
+   db.lectures=db.lectures.filter(l=>l.chapterId!==cid);
+   db.revisions=db.revisions.filter(r=>r.chapterId!==cid);
+   db.chapters=db.chapters.filter(c=>c.id!==cid);
+   save(); render(currentPage,currentParam);
+ });
+
+ document.querySelectorAll("[data-del-lecture]").forEach(b=>b.onclick=()=>{
+   if(!confirm("Delete this lecture/material and its files?"))return;
+   const lid=b.dataset.delLecture;
+   const l=db.lectures.find(x=>x.id===lid);
+   (l?.files||[]).forEach(f=>f.stored&&idbDelete(f.id));
+   db.lectures=db.lectures.filter(x=>x.id!==lid);
+   save(); render(currentPage,currentParam);
+ });
+
+ document.querySelectorAll("[data-rename-sub]").forEach(b=>b.onclick=()=>{
+   const s=db.subjects.find(x=>x.id===b.dataset.renameSub); if(!s)return;
+   const n=prompt("Rename subject",s.name); if(n&&n.trim()){s.name=n.trim();save();render(currentPage,currentParam);}
+ });
+ document.querySelectorAll("[data-del-sub]").forEach(b=>b.onclick=()=>{
+   if(!confirm("Delete this subject and everything in it (chapters, lectures, files, revisions)?"))return;
+   const sid=b.dataset.delSub;
+   const cids=db.chapters.filter(c=>c.subjectId===sid).map(c=>c.id);
+   db.lectures.filter(l=>cids.includes(l.chapterId)).forEach(l=>(l.files||[]).forEach(f=>f.stored&&idbDelete(f.id)));
+   db.lectures=db.lectures.filter(l=>!cids.includes(l.chapterId));
+   db.revisions=db.revisions.filter(r=>!cids.includes(r.chapterId));
+   db.chapters=db.chapters.filter(c=>c.subjectId!==sid);
+   db.subjects=db.subjects.filter(s=>s.id!==sid);
+   save(); go("courses");
+ });
+
+ document.querySelectorAll("[data-download-file]").forEach(b=>b.onclick=async()=>{
+   const blob=await idbGet(b.dataset.downloadFile);
+   if(!blob){toast("File not found on this device.");return;}
+   const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=b.dataset.filename||"file";
+   document.body.appendChild(a); a.click(); a.remove();
+ });
+
+ document.querySelectorAll("[data-del-session]").forEach(b=>b.onclick=()=>{db.sessions=db.sessions.filter(x=>x.id!==b.dataset.delSession);save();render(currentPage,currentParam);});
  document.querySelectorAll("[data-log-session]").forEach(b=>b.onclick=()=>openModal("session"));
- const st=document.getElementById("startTimer"),rs=document.getElementById("resetTimer");
- if(st)st.onclick=()=>{if(timer)return;timer=setInterval(()=>{remaining--;updateTimer();if(remaining<=0){clearInterval(timer);timer=null;alert("Study session complete.");}},1000)};
- if(rs)rs.onclick=()=>{clearInterval(timer);timer=null;remaining=1500;updateTimer()};
+
+ const st=document.getElementById("startTimer"),rs=document.getElementById("resetTimer"),len=document.getElementById("timerLen");
+ if(len)len.onchange=()=>{timerTotal=Number(len.value)*60;remaining=timerTotal;updateTimer();};
+ if(st)st.onclick=()=>{
+   if(timer)return;
+   st.disabled=true; st.textContent="Running…"; if(len)len.disabled=true;
+   timer=setInterval(()=>{
+     remaining--; updateTimer();
+     if(remaining<=0){
+       clearInterval(timer); timer=null;
+       st.disabled=false; st.textContent="Start"; if(len)len.disabled=false;
+       toast("Study session complete — log it below.");
+     }
+   },1000);
+ };
+ if(rs)rs.onclick=()=>{clearInterval(timer);timer=null;remaining=timerTotal;updateTimer();if(st){st.disabled=false;st.textContent="Start";} if(len)len.disabled=false;};
+
+ const semInput=document.getElementById("semInput"), saveSem=document.getElementById("saveSem");
+ if(saveSem)saveSem.onclick=()=>{db.settings.semester=semInput.value.trim()||"Current Semester";save();render(currentPage,currentParam);toast("Semester updated.");};
+
+ const exportBtn=document.getElementById("exportBtn");
+ if(exportBtn)exportBtn.onclick=()=>{exportBtn.disabled=true;exportBtn.textContent="Exporting…";exportBackup().finally(()=>{exportBtn.disabled=false;exportBtn.textContent="⬇ Export backup";});};
+ const importInput=document.getElementById("importInput");
+ if(importInput)importInput.onchange=()=>{if(importInput.files[0])importBackup(importInput.files[0]);};
+
+ const clearBtn=document.getElementById("clearBtn");
+ if(clearBtn)clearBtn.onclick=async()=>{
+   if(!confirm("This erases everything on this device and cannot be undone. Continue?"))return;
+   if(!confirm("Are you absolutely sure? Consider exporting a backup first."))return;
+   await idbClear();
+   db={semesters:[],subjects:[],chapters:[],lectures:[],sessions:[],revisions:[],settings:{semester:"Current Semester"}};
+   save(); go("home"); toast("All data erased.");
+ };
+
+ const installBtn=document.getElementById("installBtn");
+ if(installBtn)installBtn.onclick=async()=>{
+   if(!window.__deferredInstall)return;
+   window.__deferredInstall.prompt();
+   await window.__deferredInstall.userChoice;
+   window.__deferredInstall=null;
+ };
 }
-function updateTimer(){const el=document.getElementById("timer");if(el)el.textContent=`${String(Math.floor(remaining/60)).padStart(2,"0")}:${String(remaining%60).padStart(2,"0")}`}
+
+function updateTimer(){const el=document.getElementById("timer");if(el)el.textContent=fmtTime(remaining);}
+
 document.getElementById("close").onclick=()=>document.getElementById("modal").classList.remove("show");
+document.getElementById("modal").addEventListener("click",e=>{if(e.target.id==="modal")document.getElementById("modal").classList.remove("show");});
 document.getElementById("form").onsubmit=submitForm;
+
+window.addEventListener("beforeinstallprompt",(e)=>{e.preventDefault();window.__deferredInstall=e;if(currentPage==="settings")render("settings");});
+
+if("serviceWorker" in navigator){
+ window.addEventListener("load",()=>{
+   navigator.serviceWorker.register("./sw.js").catch(()=>{});
+ });
+}
+
 render();
 </script>
 </body>

@@ -1,9 +1,17 @@
 {
-  "name":"University Study System",
-  "short_name":"Study System",
-  "start_url":"./index.html",
-  "display":"standalone",
-  "background_color":"#f5f7fb",
-  "theme_color":"#3b6ff5",
-  "icons":[]
+  "id": "/",
+  "name": "University Study System",
+  "short_name": "Study System",
+  "description": "Offline-first personal university study organizer: subjects, chapters, lecture files, spaced revision and study sessions.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f5f7fb",
+  "theme_color": "#3b6ff5",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
 }
